@@ -14,7 +14,7 @@ export class PagesJaunesScraper implements BatchScraper {
            console.error('Erreur lors de la récupération des établissements:', error.message);
            throw new Error(`Impossible de récupérer les établissements : ${error.message}`);
          }
-         allEtablissements = allEtablissements.slice(0,5);
+        
          for await (let etablissement of allEtablissements) {
            try {
              const detailPage = await this.startPage('https://www.pagesjaunes.fr' + etablissement.link, 'Mozilla/5.0');

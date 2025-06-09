@@ -10,10 +10,10 @@
     </div>
 
 
-    <!-- <div v-if="loading" class="loading-container">
+    <div v-if="loading" class="loading-container">
       <div class="spinner"></div>
       <p>Chargement des entreprises...</p>
-    </div> -->
+    </div>
 
     <!-- <div v-else-if="error" class="error-message">
       <i class="fas fa-exclamation-triangle"></i>
@@ -30,9 +30,9 @@
       </router-link>
     </div> -->
 
-    <div class="businesses-container">
+    <div v-else class="businesses-container">
     
-      <BusinessTable @loading="loading = $event" />
+      <BusinessTable @loading="loading = $event" @delete="openDeleteModal($event)" />
       <div class="pagination">
         <button 
           class="btn-pagination" 
@@ -56,48 +56,55 @@
       </div>
     </div>
 
-    <!-- Modal de confirmation de suppression -->
-    <div v-if="showDeleteModal" class="modal-overlay">
-      <div class="modal-container">
-        <div class="modal-header">
-          <h3>Confirmer la suppression</h3>
-          <button class="close-btn" @click="showDeleteModal = false">
-            <i class="fas fa-times"></i>
-          </button>
-        </div>
-        <div class="modal-body">
-          <p>Êtes-vous sûr de vouloir supprimer cette entreprise ? Cette action est irréversible.</p>
-        </div>
-        <div class="modal-footer">
-          <button class="btn secondary" @click="showDeleteModal = false">Annuler</button>
-          <button class="btn danger" @click="deleteBusiness">Supprimer</button>
-        </div>
-      </div>
-    </div>
+   <!-- Delete Modal -->
+    <DeleteModal
+      :isVisible="showDeleteModal"
+      @close="showDeleteModal = false"
+      @confirm="handleDelete"
+    >
+      <template #body>
+        <p>Voulez-vous supprimer l'entreprise : {{ etablissementToDelete?.name }}</p>
+      </template>
+    </DeleteModal>
+
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
-
+import { ref, computed, onMounted } from 'vue';
+import { useEtablissementStore } from '@/stores/etablissement';
 import BusinessTable from '@/components/business/BusinessTable.vue';
+import DeleteModal from '@/components/modal/DeleteModal.vue';
+import { Etablissement } from '@/models/Etablissement';
 
 // Variables d'état
+const etablissementStore = useEtablissementStore();
 const loading = ref(false);
-const error = ref<string | null>(null);
-const businesses = ref<any[]>([]); // Remplacez 'any' par le type réel si connu
+const businesses = ref<any[]>([]); 
 const currentPage = ref(1);
 const pageSize = ref(10);
+const etablissementToDelete = ref<Etablissement>();
+
 const showDeleteModal = ref(false);
-const businessToDelete = ref<any | null>(null); // Pour stocker l'entreprise à supprimer
+
 
 // Filtres (exemple)
 const searchQuery = ref('');
-const hasFilters = computed(() => !!searchQuery.value);
 
 // Pagination
 const totalPages = computed(() => {
   return Math.ceil(filteredBusinesses.value.length / pageSize.value) || 1;
+});
+
+onMounted(async () => {
+  loading.value = true;
+  try {
+    await etablissementStore.fetchEtablissements();
+  } catch (error) {
+    console.error('Erreur lors de la récupération des entreprises:', error);
+  } finally {
+    loading.value = false;
+  }
 });
 
 // Filtrage des entreprises
@@ -113,18 +120,19 @@ function goToPage(page: number) {
   currentPage.value = page;
 }
 
-function deleteBusiness() {
-  if (!businessToDelete.value) return;
-  businesses.value = businesses.value.filter(b => b.id !== businessToDelete.value.id);
-  showDeleteModal.value = false;
-  businessToDelete.value = null;
-}
-
-// Pour ouvrir la modale de suppression
-function confirmDelete(business: any) {
-  businessToDelete.value = business;
+function openDeleteModal(id: string){
+  const found = etablissementStore.findEtablissement(id);
+  etablissementToDelete.value = found === null ? undefined : found;
   showDeleteModal.value = true;
 }
+
+async function handleDelete() {
+  if (etablissementToDelete.value) {
+    await etablissementStore.deleteEtablissement(etablissementToDelete.value.id);
+  }
+  showDeleteModal.value = false;
+}
+
 </script>
 
 <style>
