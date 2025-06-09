@@ -5,6 +5,7 @@ import { InsertEtablissementUseCase } from '../../applications/usecases/InsertEt
 import { GetAllEtablissementsUseCase } from '../../applications/usecases/GetAllEtablissementUseCase';
 import { UpdateEtablissementUseCase } from '../../applications/usecases/UpdateEtablissementUseCase';
 import { EtablissementMiddleware } from '../../infrastructure/middleware/EtablissementMiddleware';
+import { DeleteEtablissementUseCase } from '../../applications/usecases/DeleteEtablissementUseCase';
 
 export class EtablissementRouter {
     private router;
@@ -15,7 +16,8 @@ export class EtablissementRouter {
         const insertUC = new InsertEtablissementUseCase(repo);
         const getAllUC = new GetAllEtablissementsUseCase(repo);
         const updateUC = new UpdateEtablissementUseCase(repo);
-        this.controller = new EtablissementController(insertUC, getAllUC, updateUC);
+        const deleteUC = new DeleteEtablissementUseCase(repo);
+        this.controller = new EtablissementController(insertUC, getAllUC, updateUC, deleteUC);
         this.middleware = new EtablissementMiddleware();
         this.router = Router();
     }
@@ -24,6 +26,7 @@ export class EtablissementRouter {
         this.router.post('/etablissements', this.middleware.validateEtablissement ,this.controller.insert);
         this.router.get('/etablissements', this.controller.getAll);
         this.router.put('/etablissements/:id', this.controller.update);
+        this.router.delete('/etablissements/:id', this.controller.delete);
         return this.router;
     }
 }

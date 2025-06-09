@@ -1,25 +1,15 @@
 import { Sequelize, DataTypes, Model } from 'sequelize';
 import { EtablissementRepository } from '../../domain/repositories/EtablissementRepository';
 import { Etablissement } from '../../domain/entities/Etablissement';
+import { Mysql } from './Mysql';
 
 class EtablissementModel extends Model {}
 
-export class MysqlEtablissementRepository implements EtablissementRepository {
-  private sequelize: Sequelize;
+export class MysqlEtablissementRepository extends Mysql implements EtablissementRepository {
   private EtablissementModel: typeof EtablissementModel;
 
   constructor(config?: any) {
-    this.sequelize = new Sequelize(
-      config?.database,
-      config?.user,
-      config?.password,
-      {
-        host: config?.host,
-        port: config?.port,
-        dialect: config?.dialect,
-        logging: Boolean(config?.logging)
-      }
-    );
+    super(config);
 
     this.EtablissementModel = EtablissementModel.init(
       {
@@ -57,20 +47,36 @@ export class MysqlEtablissementRepository implements EtablissementRepository {
   }
 
   async update(etablissement: Etablissement, id: string): Promise<void> {
-    await this.EtablissementModel.update(etablissement, {where:{id}});
+   await this.EtablissementModel.update(
+        {
+          name: etablissement.name,
+          address: etablissement.address,
+          phone: etablissement.phone,
+          website: etablissement.website,
+          email: etablissement.email,
+          siret: etablissement.siret,
+          siren: etablissement.siren,
+        }
+        , 
+        {where:{id}});
+  }
+
+  async delete(id: string): Promise<void> {
+    await this.EtablissementModel.destroy({where: {id}});
   }
 
   async getAll(): Promise<Etablissement[]> {
     const rows = await this.EtablissementModel.findAll();
     return rows.map(row =>
       new Etablissement(
+        row.get('id') as string,
         row.get('name') as string,
         row.get('address') as string,
         row.get('phone') as string,
         row.get('website') as string,
         row.get('email') as string,
         row.get('siret') as string,
-        row.get('siret') as string
+        row.get('siren') as string
       )
     );
   }

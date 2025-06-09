@@ -14,5 +14,36 @@ export const useEtablissementStore = defineStore('etablissement', () => {
         }
     }
 
-    return{etablissements, fetchEtablissements};
+    const updateEtablissement = async (id: string) => {
+        if(etablissements.value.length === 0 || !id){
+            return null;
+        }
+        let etablissementToUpdate = etablissements.value.find(etablissement => etablissement.id === id);
+        try {
+            await api.put(`/etablissements/${id}`, etablissementToUpdate);
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    const deleteEtablissement = async (id: string) => {
+        if(etablissements.value.length === 0 || !id){
+            return null;
+        }
+        try {
+            await api.delete(`/etablissements/${id}`);
+            etablissements.value = etablissements.value.filter(etablissement => etablissement.id !== id);
+        } catch (error) {
+          console.log(error);  
+        }
+    }
+
+    const findEtablissement = (id: string) => {
+        if(etablissements.value.length === 0 || !id){
+            return null;
+        }
+        return etablissements.value.find(etablissement => etablissement.id === id);
+    }
+
+    return{etablissements, fetchEtablissements, findEtablissement, updateEtablissement, deleteEtablissement};
 })

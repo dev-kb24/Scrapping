@@ -9,12 +9,12 @@ const router = createRouter({
     {
       path: '/',
       name: 'home',
-      component: MainLayout,
+      component: () => import('@/components/layout/MainLayout.vue'),
       children:[
           {
           path: '',
           name: 'Dashboard',
-          component: Dashboard,
+          component: () => import("@/views/Dashboard.vue"),
           meta: {
             title: 'Dashboard'
           }
@@ -22,7 +22,7 @@ const router = createRouter({
         {
           path: 'entreprises',
           name: 'Entreprises',
-          component: Business,
+          component: () => import("@/views/Business.vue"),
            meta: {
             title: 'Entreprises'
           }
