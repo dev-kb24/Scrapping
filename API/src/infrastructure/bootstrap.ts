@@ -5,22 +5,28 @@ import { BatchRouter } from '../interfaces/routes/BatchRoutes';
 import { MysqlEtablissementRepository } from '../infrastructure/database/MysqlEtablissementRepository';
 import { dbConfig } from '../config/database';
 import cors from 'cors';
+import { ScrapeRouter } from '../interfaces/routes/ScrapeRoutes';
+import { MysqlScrapeRepository } from './database/MysqlScrapeRepository';
 
 export class Bootstrap {
     startApp = async () => {
         const app = express();
         const PORT = process.env.PORT || 3000;
-        const repo = new MysqlEtablissementRepository(dbConfig);
-        await repo.initEstablishement();
-        const etablissementRouter = new EtablissementRouter(repo);
-        const batchRouter = new BatchRouter(repo);
+        const repoEtablissement = new MysqlEtablissementRepository(dbConfig);
+        const repoScrape = new MysqlScrapeRepository(dbConfig);
+        await repoEtablissement.initEstablishement();
+        await repoScrape.initScrape();
+        const etablissementRouter = new EtablissementRouter(repoEtablissement);
+        const batchRouter = new BatchRouter(repoEtablissement, repoScrape);
+        const scrapeRouter = new ScrapeRouter(repoScrape);
         app.use(cors({
-          origin: 'http://localhost:5173', // autorise ton front
+          origin: 'http://localhost:5173',
           credentials: true
         }));
         app.use(express.json());
         app.use('/api', etablissementRouter.getRoutes());
         app.use('/api', batchRouter.getRoutes());
+        app.use('/scrape', scrapeRouter.getRoutes());
         
         app.listen(PORT, () => {
           console.log(`Serveur lancé sur http://localhost:${PORT}`);

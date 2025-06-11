@@ -1,4 +1,4 @@
-import { EtablissementRepository } from '../../domain/repositories/EtablissementRepository';
+import { EtablissementRepository } from '../../../domain/repositories/EtablissementRepository';
 
 export class DeleteEtablissementUseCase {
   constructor(private repo: EtablissementRepository) {}
