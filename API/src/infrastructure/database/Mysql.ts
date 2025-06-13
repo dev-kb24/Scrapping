@@ -4,7 +4,7 @@ export class Mysql {
     protected sequelize: Sequelize;
 
     constructor(config?: any) {
-        this.sequelize = new Sequelize(
+      this.sequelize = new Sequelize(
           config?.database,
           config?.user,
           config?.password,
