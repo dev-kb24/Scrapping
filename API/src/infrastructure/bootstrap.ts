@@ -26,7 +26,7 @@ export class Bootstrap {
         app.use(express.json());
         app.use('/api', etablissementRouter.getRoutes());
         app.use('/api', batchRouter.getRoutes());
-        app.use('/scrape', scrapeRouter.getRoutes());
+        app.use('/api', scrapeRouter.getRoutes());
         
         app.listen(PORT, () => {
           console.log(`Serveur lancé sur http://localhost:${PORT}`);
