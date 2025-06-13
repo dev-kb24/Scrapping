@@ -1,11 +1,11 @@
 import { Router } from 'express';
 import { EtablissementController } from '../controllers/EtablissementController';
 import { MysqlEtablissementRepository } from '../../infrastructure/database/MysqlEtablissementRepository';
-import { InsertEtablissementUseCase } from '../../applications/usecases/InsertEtablissementUseCase';
-import { GetAllEtablissementsUseCase } from '../../applications/usecases/GetAllEtablissementUseCase';
-import { UpdateEtablissementUseCase } from '../../applications/usecases/UpdateEtablissementUseCase';
+import { InsertEtablissementUseCase } from '../../applications/etablissements/usecases/InsertEtablissementUseCase';
+import { GetAllEtablissementsUseCase } from '../../applications/etablissements/usecases/GetAllEtablissementUseCase';
+import { UpdateEtablissementUseCase } from '../../applications/etablissements/usecases/UpdateEtablissementUseCase';
 import { EtablissementMiddleware } from '../../infrastructure/middleware/EtablissementMiddleware';
-import { DeleteEtablissementUseCase } from '../../applications/usecases/DeleteEtablissementUseCase';
+import { DeleteEtablissementUseCase } from '../../applications/etablissements/usecases/DeleteEtablissementUseCase';
 
 export class EtablissementRouter {
     private router;

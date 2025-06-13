@@ -1,9 +1,9 @@
 import { Request, Response } from 'express';
-import { InsertEtablissementUseCase } from '../../applications/usecases/InsertEtablissementUseCase';
-import { GetAllEtablissementsUseCase } from '../../applications/usecases/GetAllEtablissementUseCase';
+import { InsertEtablissementUseCase } from '../../applications/etablissements/usecases/InsertEtablissementUseCase';
+import { GetAllEtablissementsUseCase } from '../../applications/etablissements/usecases/GetAllEtablissementUseCase';
 import { Etablissement } from '../../domain/entities/Etablissement';
-import { UpdateEtablissementUseCase } from '../../applications/usecases/UpdateEtablissementUseCase';
-import { DeleteEtablissementUseCase } from '../../applications/usecases/DeleteEtablissementUseCase';
+import { UpdateEtablissementUseCase } from '../../applications/etablissements/usecases/UpdateEtablissementUseCase';
+import { DeleteEtablissementUseCase } from '../../applications/etablissements/usecases/DeleteEtablissementUseCase';
 
 export class EtablissementController {
   constructor(

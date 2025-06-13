@@ -1,6 +1,6 @@
-import { BatchScraper } from '../../domain/services/BatchScraper';
-import { EtablissementRepository } from '../../domain/repositories/EtablissementRepository';
-import { Etablissement } from '../../domain/entities/Etablissement';
+import { BatchScraper } from '../../../domain/services/BatchScraper';
+import { EtablissementRepository } from '../../../domain/repositories/EtablissementRepository';
+import { Etablissement } from '../../../domain/entities/Etablissement';
 
 export class RunBatchUseCase {
   constructor(
