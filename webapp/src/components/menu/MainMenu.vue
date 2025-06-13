@@ -4,7 +4,7 @@
           aria-labelledby="main-nav-heading"
         >
           <router-link
-            to="/dashboard"
+            to="/"
             class="nav-item"
             active-class="active"
           >
@@ -12,7 +12,7 @@
             <span>Dashboard</span>
           </router-link>
           <router-link
-            to="/dashboard/scrapes"
+            to="/scrape"
             class="nav-item"
             active-class="active"
           >
