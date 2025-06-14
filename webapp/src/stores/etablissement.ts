@@ -3,7 +3,7 @@ import { ApiService } from "@/services/APIService";
 import { defineStore } from "pinia";
 import { ref } from "vue";
 
-const api = new ApiService('http://localhost:8000/api');
+const api = new ApiService('http://localhost:4173/api');
 
 export const useEtablissementStore = defineStore('etablissement', () => {
     const etablissements = ref<Etablissement[]>([])
