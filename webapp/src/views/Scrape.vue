@@ -29,7 +29,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useScrapeStore } from '@/stores/scrape';
-import ScrapeTable from '@/components/scrape/ScrapeTable.vue';
+import ScrapeTable from '@/components/Scrape/ScrapeTable.vue';
 import DeleteModal from '@/components/modal/DeleteModal.vue';
 
 const scrapeStore = useScrapeStore();
