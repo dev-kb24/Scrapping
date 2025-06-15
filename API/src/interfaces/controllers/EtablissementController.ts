@@ -16,7 +16,7 @@ export class EtablissementController {
   insert = async (req: Request, res: Response) => {
     try {
       const { name, address, phone, website, email, siret, siren } = req.body;
-      const etablissement = new Etablissement(name, address, phone, website, email, siret, siren);
+      const etablissement = new Etablissement('',name, address, phone, website, email, siret, siren);
       await this.insertUseCase.execute(etablissement);
       res.status(201).json({ message: 'Etablissement inséré' });
     } catch (error) {

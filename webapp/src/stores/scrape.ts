@@ -3,7 +3,7 @@ import { ApiService } from "@/services/APIService";
 import { defineStore } from "pinia";
 import { ref } from "vue";
 
-const api = new ApiService('http://localhost:8000/api');
+const api = new ApiService('http://localhost:4173/api');
 
 export const useScrapeStore = defineStore('scrape', () => {
   const scrapes = ref<Scrape[]>([]);
@@ -24,5 +24,18 @@ export const useScrapeStore = defineStore('scrape', () => {
     }
   };
 
-  return { scrapes, fetchScrapes, deleteScrape };
+  const addScrape = async (scrapeData: Partial<Scrape>) => {
+    try {
+      const response = await api.post<Scrape>(`/scrape`, scrapeData);
+      if (response && response.data) {
+        await fetchScrapes(); // Refresh the list after adding
+      }
+      return response.data;
+    } catch (error) {
+      console.error('Error adding scrape:', error);
+      throw error;
+    }
+  };
+
+  return { scrapes, fetchScrapes, deleteScrape, addScrape };
 });

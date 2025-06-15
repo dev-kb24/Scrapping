@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { MysqlScrapeRepository } from '../../infrastructure/database/MysqlScrapeRepository';
 import { GetAllScrapeUseCase } from '../../applications/scrapes/usecases/GetAllScrapeUseCase';
+import { InsertScrapeUseCase } from '../../applications/scrapes/usecases/InsertScrapeUseCase';
 import { ScrapeController } from '../controllers/ScrapeController';
 
 export class ScrapeRouter {
@@ -9,12 +10,14 @@ export class ScrapeRouter {
 
      constructor(repo: MysqlScrapeRepository) {
         const getAllUC: GetAllScrapeUseCase = new GetAllScrapeUseCase(repo);
-        this.controller = new ScrapeController(getAllUC);
+        const insertUC: InsertScrapeUseCase = new InsertScrapeUseCase(repo);
+        this.controller = new ScrapeController(getAllUC, insertUC);
         this.router = Router();
-     }
+   }
     
      getRoutes(){
         this.router.get('/scrape', this.controller.getAll);
+        this.router.post('/scrape', this.controller.insert);
         return this.router;
      }
 }
