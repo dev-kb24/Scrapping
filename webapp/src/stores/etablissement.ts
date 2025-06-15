@@ -38,6 +38,19 @@ export const useEtablissementStore = defineStore('etablissement', () => {
         }
     }
 
+    const addEtablissement = async (etablissementData: Partial<Etablissement>) => {
+        try {
+            const response = await api.post<Etablissement>(`/etablissements`, etablissementData);
+            if (response && response.data) {
+                await fetchEtablissements(); // Refresh the list after adding
+            }
+            return response.data;
+        } catch (error) {
+            console.error('Error adding etablissement:', error);
+            throw error;
+        }
+    };
+
     const findEtablissement = (id: string) => {
         if(etablissements.value.length === 0 || !id){
             return null;
@@ -45,5 +58,5 @@ export const useEtablissementStore = defineStore('etablissement', () => {
         return etablissements.value.find(etablissement => etablissement.id === id);
     }
 
-    return{etablissements, fetchEtablissements, findEtablissement, updateEtablissement, deleteEtablissement};
+    return{etablissements, fetchEtablissements, findEtablissement, updateEtablissement, deleteEtablissement, addEtablissement};
 })
