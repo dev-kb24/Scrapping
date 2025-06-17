@@ -6,8 +6,7 @@
         class="new-scrape-btn"
         @click="showAddModal = true"
       >
-        <i class="fas fa-plus"></i>
-        Ajouter
+        <i class="fas fa-plus"></i> Ajouter un scrape
       </button>
     </div>
 
@@ -82,7 +81,7 @@
       </template>
     </DeleteModal>
 
-    <!-- Add Scrape Modal -->
+    <!-- Add Modal -->
     <BaseModal
       :isVisible="showAddModal"
       @close="showAddModal = false"
@@ -91,35 +90,33 @@
         <h3>Ajouter un nouveau scrape</h3>
       </template>
       <template #body>
-        <form @submit.prevent="handleAddScrape">
-          <div class="form-group">
-            <label for="name">Nom:</label>
-            <input
-              type="text"
-              v-model="newScrape.name"
-              id="name"
-              required
-            />
-          </div>
-          <div class="form-group">
-            <label for="keyword">Mot-clé:</label>
-            <input
-              type="text"
-              v-model="newScrape.keyword"
-              id="keyword"
-              required
-            />
-          </div>
-          <div class="form-group">
-            <label for="city">Ville:</label>
-            <input
-              type="text"
-              v-model="newScrape.city"
-              id="city"
-              required
-            />
-          </div>
-        </form>
+        <div class="form-group">
+          <label for="name">Nom</label>
+          <input
+            type="text"
+            id="name"
+            v-model="newScrape.name"
+            placeholder="Nom du scrape"
+          />
+        </div>
+        <div class="form-group">
+          <label for="keyword">Mot-clé</label>
+          <input
+            type="text"
+            id="keyword"
+            v-model="newScrape.keyword"
+            placeholder="Mot-clé à rechercher"
+          />
+        </div>
+        <div class="form-group">
+          <label for="city">Ville</label>
+          <input
+            type="text"
+            id="city"
+            v-model="newScrape.city"
+            placeholder="Ville à rechercher"
+          />
+        </div>
       </template>
       <template #footer>
         <button
@@ -129,7 +126,7 @@
         <button
           class="submit-btn"
           @click="handleAddScrape"
-        >Ajouter</button>
+        >Lancer le scrape</button>
       </template>
     </BaseModal>
   </div>
@@ -141,7 +138,9 @@ import { useScrapeStore } from "@/stores/scrape";
 import ScrapeTable from "@/components/Scrape/ScrapeTable.vue";
 import DeleteModal from "@/components/modal/DeleteModal.vue";
 import BaseModal from "@/components/modal/BaseModal.vue";
+import { ApiService } from "@/services/APIService";
 
+const api = new ApiService("http://localhost:4173/api");
 const scrapeStore = useScrapeStore();
 const loading = ref(false);
 const showDeleteModal = ref(false);
@@ -194,14 +193,26 @@ async function handleDelete() {
 
 async function handleAddScrape() {
   try {
-    await scrapeStore.addScrape({
-      ...newScrape.value,
-      progress: "in progress",
-    });
-    resetForm();
+    // Fermer le modal immédiatement
     showAddModal.value = false;
+
+    // Lancer le batch en arrière-plan
+    api
+      .post("/batch", newScrape.value)
+      .then(() => {
+        // Rafraîchir la liste des scrapes après un court délai
+        setTimeout(() => {
+          scrapeStore.fetchScrapes();
+        }, 1000);
+      })
+      .catch((error) => {
+        console.error("Erreur lors du lancement du scrape:", error);
+      });
+
+    // Réinitialiser le formulaire
+    resetForm();
   } catch (error) {
-    console.error("Error adding scrape:", error);
+    console.error("Erreur lors du lancement du scrape:", error);
   }
 }
 
