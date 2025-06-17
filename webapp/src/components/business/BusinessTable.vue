@@ -19,7 +19,37 @@
         <th>Site web</th>
         <th>Siret</th>
         <th>Siren</th>
-        <th>Actions</th>
+        <th>
+          Actions
+          <button
+            class="btn-icon select-mode-btn"
+            :class="{ active: selectionModeActive }"
+            @click="toggleSelectionMode"
+            title="Mode sélection multiple"
+            type="button"
+          >
+            <i class="fas fa-check-square"></i>
+          </button>
+          <button
+            v-if="selectionModeActive && selectedCount > 0"
+            class="btn-icon delete-multiple-btn"
+            @click="$emit('delete-multiple')"
+            title="Supprimer la sélection"
+            type="button"
+          >
+            <i class="fas fa-trash"></i>
+            <span class="selected-count">{{ selectedCount }}</span>
+          </button>
+          <button
+            v-if="selectionModeActive"
+            class="btn-icon select-all-btn"
+            @click="toggleSelectAll"
+            :title="isAllSelected ? 'Tout désélectionner' : 'Tout sélectionner'"
+            type="button"
+          >
+            <i :class="isAllSelected ? 'fas fa-square-check' : 'far fa-square'"></i>
+          </button>
+        </th>
       </tr>
     </thead>
     <tbody>
@@ -164,9 +194,6 @@
           >
         </td>
         <td class="actions-cell">
-          <!-- <button class="btn-icon view-btn" @click="$emit('view', business._id)" title="Voir les détails">
-              <i class="fas fa-eye"></i>
-            </button> -->
           <button
             v-if="!updatingInProgress[business.id]"
             class="btn-icon edit-btn"
@@ -192,6 +219,18 @@
           >
             <i class="fas fa-trash"></i>
           </button>
+
+          <label
+            v-if="selectionModeActive"
+            class="checkbox-container"
+          >
+            <input
+              type="checkbox"
+              :checked="selectedIds.includes(business.id)"
+              @change="$emit('toggle-select', business.id)"
+            />
+            <span class="checkmark"></span>
+          </label>
         </td>
       </tr>
     </tbody>
@@ -199,7 +238,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, onMounted, watch } from "vue";
 import { useEtablissementStore } from "@/stores/etablissement";
 import type { Ref } from "vue";
 import { Etablissement } from "@/models/Etablissement";
@@ -207,20 +246,44 @@ import { Etablissement } from "@/models/Etablissement";
 // Props
 const props = defineProps<{
   etablissements: Etablissement[];
+  selectedIds?: string[];
 }>();
 
-const emit = defineEmits(["edit", "delete", "loading"]);
+const emit = defineEmits([
+  "edit",
+  "delete",
+  "loading",
+  "toggle-select",
+  "delete-multiple",
+  "clear-selection",
+  "select-all",
+  "deselect-all",
+]);
 const etablissementStore = useEtablissementStore();
 const sortEmailActive = ref(false);
+const selectionModeActive = ref(false);
 
 const updatingInProgress: Ref<Record<string, boolean>> = ref({});
 
-computed(() => {
+// Initialiser updatingInProgress pour chaque établissement
+onMounted(() => {
   props.etablissements.forEach((etablissement) => {
     updatingInProgress.value[etablissement.id] = false;
   });
-  return props.etablissements;
 });
+
+// Mettre à jour updatingInProgress quand les établissements changent
+watch(
+  () => props.etablissements,
+  (newEtablissements) => {
+    newEtablissements.forEach((etablissement) => {
+      if (updatingInProgress.value[etablissement.id] === undefined) {
+        updatingInProgress.value[etablissement.id] = false;
+      }
+    });
+  },
+  { deep: true }
+);
 
 const displayedEtablissements = computed(() => {
   const list = [...props.etablissements];
@@ -233,6 +296,41 @@ const displayedEtablissements = computed(() => {
   }
   return list;
 });
+
+const selectedCount = computed(() => {
+  return props.selectedIds?.length || 0;
+});
+
+const isAllSelected = computed(() => {
+  if (!props.selectedIds || !props.etablissements.length) return false;
+  return props.etablissements.every((item) =>
+    props.selectedIds?.includes(item.id)
+  );
+});
+
+function toggleSelectionMode() {
+  console.log("Mode sélection toggled:", !selectionModeActive.value);
+  selectionModeActive.value = !selectionModeActive.value;
+
+  // Si on désactive le mode sélection, on émet un événement pour vider la sélection
+  if (!selectionModeActive.value && props.selectedIds?.length) {
+    emit("clear-selection");
+  }
+}
+
+function toggleSelectAll() {
+  if (isAllSelected.value) {
+    emit(
+      "deselect-all",
+      props.etablissements.map((item) => item.id)
+    );
+  } else {
+    emit(
+      "select-all",
+      props.etablissements.map((item) => item.id)
+    );
+  }
+}
 
 function openUpdatingEtablissement(id: string) {
   if (!id) {
@@ -254,6 +352,107 @@ const formatWebsite = (website: string) => {
 };
 </script>
 <style scoped>
+.select-mode-btn {
+  margin-left: 8px;
+  background-color: #f3f4f6;
+  color: #6b7280;
+}
+
+.select-mode-btn.active {
+  background-color: #4f46e5;
+  color: white;
+}
+
+.select-all-btn {
+  margin-left: 4px;
+  background-color: #f3f4f6;
+  color: #6b7280;
+}
+
+.delete-multiple-btn {
+  margin-left: 4px;
+  background-color: #fee2e2;
+  color: #ef4444;
+  position: relative;
+}
+
+.selected-count {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background-color: #ef4444;
+  color: white;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.checkbox-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  padding-left: 25px;
+  cursor: pointer;
+  user-select: none;
+  margin-left: 8px;
+  height: 32px;
+  width: 32px;
+}
+
+.checkbox-container input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+.checkmark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  height: 18px;
+  width: 18px;
+  background-color: #eee;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+}
+
+.checkbox-container:hover input ~ .checkmark {
+  background-color: #ccc;
+}
+
+.checkbox-container input:checked ~ .checkmark {
+  background-color: #4f46e5;
+  border-color: #4f46e5;
+}
+
+.checkmark:after {
+  content: "";
+  position: absolute;
+  display: none;
+}
+
+.checkbox-container input:checked ~ .checkmark:after {
+  display: block;
+}
+
+.checkbox-container .checkmark:after {
+  left: 6px;
+  top: 2px;
+  width: 5px;
+  height: 10px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
 .business-input {
   padding: 6px 10px;
   border: 1px solid #d1d5db;
@@ -356,8 +555,11 @@ const formatWebsite = (website: string) => {
 
 .actions-cell {
   display: flex;
-  gap: 8px;
   align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  border-bottom: none !important;
+  padding-bottom: 12px !important; /* Maintenir un padding cohérent */
 }
 
 .btn-icon {
@@ -385,6 +587,12 @@ const formatWebsite = (website: string) => {
   outline: 2px solid #007bff55;
 }
 
+/* Styles pour les lignes du tableau */
+.businesses-table tr:last-child {
+  border-bottom: none;
+}
+
+/* Styles pour les médias queries */
 @media (max-width: 900px) {
   .businesses-table th,
   .businesses-table td {

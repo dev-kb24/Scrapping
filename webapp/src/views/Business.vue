@@ -59,8 +59,14 @@
 
       <BusinessTable
         :etablissements="paginatedEtablissements"
+        :selectedIds="selectedEtablissements"
         @loading="loading = $event"
         @delete="openDeleteModal($event)"
+        @toggle-select="toggleSelect"
+        @delete-multiple="showDeleteMultipleModal = true"
+        @clear-selection="selectedEtablissements = []"
+        @select-all="selectAll"
+        @deselect-all="deselectAll"
       />
 
       <div class="pagination">
@@ -92,9 +98,16 @@
       @close="showDeleteModal = false"
       @confirm="handleDelete"
     >
-      <template #body>
-        <p>Voulez-vous supprimer l'entreprise : {{ etablissementToDelete?.name }}</p>
-      </template>
+      <p>Voulez-vous supprimer l'entreprise : {{ etablissementToDelete?.name }}</p>
+    </DeleteModal>
+
+    <!-- Delete Multiple Modal -->
+    <DeleteModal
+      :isVisible="showDeleteMultipleModal"
+      @close="showDeleteMultipleModal = false"
+      @confirm="handleDeleteMultiple"
+    >
+      <p>Voulez-vous supprimer les {{ selectedEtablissements.length }} entreprises sélectionnées ?</p>
     </DeleteModal>
 
     <!-- Add Etablissement Modal -->
@@ -190,16 +203,18 @@ import { useEtablissementStore } from "@/stores/etablissement";
 import BusinessTable from "@/components/business/BusinessTable.vue";
 import DeleteModal from "@/components/modal/DeleteModal.vue";
 import BaseModal from "@/components/modal/BaseModal.vue";
-import { Etablissement } from "@/models/Etablissement";
+import type { Etablissement } from "@/models/Etablissement";
 
 // Variables d'état
 const etablissementStore = useEtablissementStore();
 const loading = ref(false);
 const currentPage = ref(1);
 const pageSize = ref(10);
-const etablissementToDelete = ref<Etablissement>();
+const etablissementToDelete = ref<Etablissement | undefined>();
+const selectedEtablissements = ref<string[]>([]);
 
 const showDeleteModal = ref(false);
+const showDeleteMultipleModal = ref(false);
 const showAddModal = ref(false);
 const newEtablissement = ref({
   name: "",
@@ -216,9 +231,7 @@ const searchQuery = ref("");
 
 // Pagination
 const totalPages = computed(() => {
-  return (
-    Math.ceil(etablissementStore.etablissements.length / pageSize.value) || 1
-  );
+  return Math.ceil(etablissementStore.etablissements.length / pageSize.value);
 });
 
 // Computed property for paginated data
@@ -282,14 +295,53 @@ function resetForm() {
     siren: "",
   };
 }
+
+function toggleSelect(id: string) {
+  console.log("Toggle select:", id);
+  const index = selectedEtablissements.value.indexOf(id);
+  if (index === -1) {
+    selectedEtablissements.value.push(id);
+  } else {
+    selectedEtablissements.value.splice(index, 1);
+  }
+}
+
+function selectAll(ids: string[]) {
+  // Ajouter tous les IDs qui ne sont pas déjà sélectionnés
+  ids.forEach((id) => {
+    if (!selectedEtablissements.value.includes(id)) {
+      selectedEtablissements.value.push(id);
+    }
+  });
+}
+
+function deselectAll(ids: string[]) {
+  // Filtrer les IDs à désélectionner
+  selectedEtablissements.value = selectedEtablissements.value.filter(
+    (id) => !ids.includes(id)
+  );
+}
+
+async function handleDeleteMultiple() {
+  loading.value = true;
+  try {
+    for (const id of selectedEtablissements.value) {
+      await etablissementStore.deleteEtablissement(id);
+    }
+    selectedEtablissements.value = [];
+  } catch (error) {
+    console.error("Erreur lors de la suppression multiple:", error);
+  } finally {
+    loading.value = false;
+    showDeleteMultipleModal.value = false;
+  }
+}
 </script>
 
 <style>
 .businesses-view {
   width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
+  padding: 20px 30px;
 }
 
 .page-header {
@@ -442,6 +494,9 @@ function resetForm() {
   border-radius: 8px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   overflow: hidden;
+  width: 100%;
+  padding: 0;
+  margin: 0;
 }
 
 .businesses-table {

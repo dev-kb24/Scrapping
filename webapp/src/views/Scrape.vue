@@ -43,7 +43,13 @@
 
       <ScrapeTable
         :scrapes="paginatedScrapes"
+        :selectedIds="selectedScrapes"
         @delete="openDeleteModal"
+        @toggle-select="toggleSelect"
+        @delete-multiple="showDeleteMultipleModal = true"
+        @clear-selection="selectedScrapes = []"
+        @select-all="selectAll"
+        @deselect-all="deselectAll"
       />
 
       <!-- Pagination controls -->
@@ -76,9 +82,16 @@
       @close="showDeleteModal = false"
       @confirm="handleDelete"
     >
-      <template #body>
-        <p>Voulez-vous supprimer ce scrape ?</p>
-      </template>
+      <p>Voulez-vous supprimer ce scrape ?</p>
+    </DeleteModal>
+
+    <!-- Delete Multiple Modal -->
+    <DeleteModal
+      :isVisible="showDeleteMultipleModal"
+      @close="showDeleteMultipleModal = false"
+      @confirm="handleDeleteMultiple"
+    >
+      <p>Voulez-vous supprimer les {{ selectedScrapes.length }} scrapes sélectionnés ?</p>
     </DeleteModal>
 
     <!-- Add Modal -->
@@ -144,8 +157,10 @@ const api = new ApiService("http://localhost:4173/api");
 const scrapeStore = useScrapeStore();
 const loading = ref(false);
 const showDeleteModal = ref(false);
+const showDeleteMultipleModal = ref(false);
 const showAddModal = ref(false);
 const scrapeToDelete = ref<string | null>(null);
+const selectedScrapes = ref<string[]>([]);
 const newScrape = ref({
   name: "",
   keyword: "",
@@ -191,6 +206,46 @@ async function handleDelete() {
   showDeleteModal.value = false;
 }
 
+async function handleDeleteMultiple() {
+  loading.value = true;
+  try {
+    for (const id of selectedScrapes.value) {
+      await scrapeStore.deleteScrape(id);
+    }
+    selectedScrapes.value = [];
+  } catch (error) {
+    console.error("Erreur lors de la suppression multiple:", error);
+  } finally {
+    loading.value = false;
+    showDeleteMultipleModal.value = false;
+  }
+}
+
+function toggleSelect(id: string) {
+  const index = selectedScrapes.value.indexOf(id);
+  if (index === -1) {
+    selectedScrapes.value.push(id);
+  } else {
+    selectedScrapes.value.splice(index, 1);
+  }
+}
+
+function selectAll(ids: string[]) {
+  // Ajouter tous les IDs qui ne sont pas déjà sélectionnés
+  ids.forEach((id) => {
+    if (!selectedScrapes.value.includes(id)) {
+      selectedScrapes.value.push(id);
+    }
+  });
+}
+
+function deselectAll(ids: string[]) {
+  // Filtrer les IDs à désélectionner
+  selectedScrapes.value = selectedScrapes.value.filter(
+    (id) => !ids.includes(id)
+  );
+}
+
 async function handleAddScrape() {
   try {
     // Fermer le modal immédiatement
@@ -226,6 +281,11 @@ function resetForm() {
 </script>
 
 <style scoped>
+.businesses-view {
+  width: 100%;
+  padding: 20px 30px;
+}
+
 .table-controls {
   display: flex;
   justify-content: space-between;
@@ -310,6 +370,7 @@ function resetForm() {
   color: #4b5563;
   font-weight: 500;
 }
+
 .page-header {
   display: flex;
   justify-content: space-between;
@@ -376,6 +437,43 @@ function resetForm() {
 
 .submit-btn:hover {
   background-color: #4338ca;
+}
+
+.businesses-container {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+}
+
+.spinner {
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border-left-color: #4f46e5;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 </style>
 
