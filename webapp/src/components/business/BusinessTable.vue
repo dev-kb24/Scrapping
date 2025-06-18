@@ -20,6 +20,17 @@
         <th>Siret</th>
         <th>Siren</th>
         <th>Actions</th>
+        <th
+          v-if="selectionMode"
+          class="selection-column"
+        >
+          <input
+            type="checkbox"
+            :checked="allSelected"
+            @change="$emit('toggle-all')"
+            class="select-all-checkbox"
+          />
+        </th>
       </tr>
     </thead>
     <tbody>
@@ -202,6 +213,17 @@
             <i class="fas fa-envelope"></i>
           </button>
         </td>
+        <td
+          v-if="selectionMode"
+          class="selection-column"
+        >
+          <input
+            type="checkbox"
+            :checked="selectedItems.includes(business.id)"
+            @change="$emit('toggle-select', business.id)"
+            class="select-checkbox"
+          />
+        </td>
       </tr>
     </tbody>
   </table>
@@ -216,9 +238,19 @@ import { Etablissement } from "@/models/Etablissement";
 // Props
 const props = defineProps<{
   etablissements: Etablissement[];
+  selectionMode?: boolean;
+  selectedItems?: string[];
+  allSelected?: boolean;
 }>();
 
-const emit = defineEmits(["edit", "delete", "loading", "email"]);
+const emit = defineEmits([
+  "edit",
+  "delete",
+  "loading",
+  "email",
+  "toggle-select",
+  "toggle-all",
+]);
 const etablissementStore = useEtablissementStore();
 const sortEmailActive = ref(false);
 
@@ -412,5 +444,19 @@ const formatWebsite = (website: string) => {
     padding: 2px 4px;
     font-size: 0.95em;
   }
+}
+
+/* Ajout des styles pour la colonne de sélection */
+.selection-column {
+  width: 48px;
+  text-align: center;
+  padding: 0 8px;
+}
+
+.select-all-checkbox,
+.select-checkbox {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
 }
 </style>
