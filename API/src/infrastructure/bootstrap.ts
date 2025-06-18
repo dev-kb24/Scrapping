@@ -20,7 +20,7 @@ export class Bootstrap {
         const batchRouter = new BatchRouter(repoEtablissement, repoScrape);
         const scrapeRouter = new ScrapeRouter(repoScrape);
         app.use(cors({
-          origin: 'http://127.0.0.1:4173',
+          origin: 'http://localhost:5173',
           credentials: true
         }));
         app.use(express.json());
