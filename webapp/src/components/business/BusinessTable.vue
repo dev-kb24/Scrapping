@@ -192,6 +192,15 @@
           >
             <i class="fas fa-trash"></i>
           </button>
+
+          <button
+            class="btn-icon email-btn"
+            @click="$emit('email', business.email)"
+            :disabled="!business.email"
+            title="Envoyer un email"
+          >
+            <i class="fas fa-envelope"></i>
+          </button>
         </td>
       </tr>
     </tbody>
@@ -209,7 +218,7 @@ const props = defineProps<{
   etablissements: Etablissement[];
 }>();
 
-const emit = defineEmits(["edit", "delete", "loading"]);
+const emit = defineEmits(["edit", "delete", "loading", "email"]);
 const etablissementStore = useEtablissementStore();
 const sortEmailActive = ref(false);
 
@@ -383,6 +392,12 @@ const formatWebsite = (website: string) => {
 
 .btn-icon:focus {
   outline: 2px solid #007bff55;
+}
+
+.btn-icon.email-btn:not(:disabled):hover,
+.btn-icon.email-btn:not(:disabled):focus {
+  background: #444;
+  color: #fff;
 }
 
 @media (max-width: 900px) {
