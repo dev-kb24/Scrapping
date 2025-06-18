@@ -25,7 +25,7 @@ export class Bootstrap {
         const scrapeRouter = new ScrapeRouter(repoScrape);
         const emailRouter = new EmailRouter(repoEmail, repoEtablissement);
         app.use(cors({
-          origin: 'http://127.0.0.1:4173',
+          origin: 'http://localhost:5173',
           credentials: true
         }));
         app.use(express.json());
