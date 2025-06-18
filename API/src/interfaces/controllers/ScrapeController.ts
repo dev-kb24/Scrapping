@@ -1,5 +1,4 @@
 import { Request, Response } from 'express';
-import { Etablissement } from '../../domain/entities/Etablissement';
 import { GetAllScrapeUseCase } from '../../applications/scrapes/usecases/GetAllScrapeUseCase';
 import { Scrape } from '../../domain/entities/Scrape';
 
