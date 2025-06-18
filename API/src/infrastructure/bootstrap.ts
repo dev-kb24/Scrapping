@@ -14,7 +14,7 @@ import { emailConfig } from '../config/email';
 export class Bootstrap {
     startApp = async () => {
         const app = express();
-        const PORT = process.env.PORT || 3000;
+        const PORT = process.env.PORT_BACK || 4173;
         const repoEtablissement = new MysqlEtablissementRepository(dbConfig);
         const repoScrape = new MysqlScrapeRepository(dbConfig);
         const repoEmail = new EmailRepository(emailConfig);
@@ -25,7 +25,7 @@ export class Bootstrap {
         const scrapeRouter = new ScrapeRouter(repoScrape);
         const emailRouter = new EmailRouter(repoEmail, repoEtablissement);
         app.use(cors({
-          origin: 'http://localhost:5173',
+          origin: 'http://127.0.0.1:4173',
           credentials: true
         }));
         app.use(express.json());
@@ -35,7 +35,7 @@ export class Bootstrap {
         app.use('/api', emailRouter.getRoutes());
         
         app.listen(PORT, () => {
-          console.log(`Serveur lancé sur http://localhost:${PORT}`);
+          console.log(`Serveur lancé sur le port ${PORT}`);
         });
     }
 }

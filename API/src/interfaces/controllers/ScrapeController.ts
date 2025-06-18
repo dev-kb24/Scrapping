@@ -5,7 +5,7 @@ import { Scrape } from '../../domain/entities/Scrape';
 export class ScrapeController {
   constructor(
     private getAllScrapeUseCase: GetAllScrapeUseCase
-) {}
+  ) {}
 
   getAll = async (req: Request, res: Response) => {
     try {

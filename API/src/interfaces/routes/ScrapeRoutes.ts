@@ -11,7 +11,7 @@ export class ScrapeRouter {
         const getAllUC: GetAllScrapeUseCase = new GetAllScrapeUseCase(repo);
         this.controller = new ScrapeController(getAllUC);
         this.router = Router();
-     }
+   }
     
      getRoutes(){
         this.router.get('/scrape', this.controller.getAll);
