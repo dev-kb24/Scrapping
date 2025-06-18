@@ -2,13 +2,21 @@
   <div class="businesses-view">
     <div class="page-header">
       <h1>Entreprises</h1>
-      <button
-        class="new-etablissement-btn"
-        @click="showAddModal = true"
-      >
-        <i class="fas fa-plus"></i>
-        Ajouter
-      </button>
+      <div class="header-actions">
+        <button
+          v-if="selectionMode && selectedEtablissements.length > 0"
+          class="delete-selected-btn"
+          @click="openDeleteMultipleModal"
+        >
+          <i class="fas fa-trash"></i> Supprimer ({{ selectedEtablissements.length }})
+        </button>
+        <button
+          class="new-etablissement-btn"
+          @click="showAddModal = true"
+        >
+          <i class="fas fa-plus"></i> Ajouter
+        </button>
+      </div>
     </div>
 
     <div
@@ -18,21 +26,6 @@
       <div class="spinner"></div>
       <p>Chargement des entreprises...</p>
     </div>
-
-    <!-- <div v-else-if="error" class="error-message">
-      <i class="fas fa-exclamation-triangle"></i>
-      <p>{{ error }}</p>
-      <button class="btn secondary" @click="refreshBusinesses">Réessayer</button>
-    </div> -->
-
-    <!-- <div v-else-if="filteredBusinesses.length === 0" class="empty-state">
-      <i class="fas fa-store-slash"></i>
-      <p v-if="hasFilters">Aucune entreprise ne correspond à vos critères de recherche.</p>
-      <p v-else>Aucune entreprise n'a été importée. Utilisez l'outil de recherche Google Places pour importer des entreprises.</p>
-      <router-link to="/scrapes/google-places" class="btn primary">
-        <i class="fas fa-search"></i> Rechercher des entreprises
-      </router-link>
-    </div> -->
 
     <div
       v-else
@@ -55,13 +48,28 @@
           </select>
           <span>éléments par page</span>
         </div>
+        <div class="table-actions">
+          <button
+            class="selection-mode-btn"
+            :class="{ active: selectionMode }"
+            @click="toggleSelectionMode"
+            title="Mode sélection"
+          >
+            <i class="fas fa-check-square"></i>
+          </button>
+        </div>
       </div>
 
       <BusinessTable
         :etablissements="paginatedEtablissements"
+        :selection-mode="selectionMode"
+        :selected-items="selectedEtablissements"
+        :all-selected="isAllSelected"
         @loading="loading = $event"
         @delete="openDeleteModal($event)"
         @email="goToEmailPage"
+        @toggle-select="toggleSelect"
+        @toggle-all="toggleSelectAll"
       />
 
       <div class="pagination">
@@ -89,23 +97,33 @@
 
     <!-- Delete Modal -->
     <DeleteModal
+      v-if="showDeleteModal"
       :isVisible="showDeleteModal"
+      title="Supprimer l'entreprise"
       @close="showDeleteModal = false"
       @confirm="handleDelete"
     >
-      <template #body>
-        <p>Voulez-vous supprimer l'entreprise : {{ etablissementToDelete?.name }}</p>
-      </template>
+      <p>Êtes-vous sûr de vouloir supprimer {{ etablissementToDelete?.name || 'cette entreprise' }} ? Cette action est irréversible.</p>
     </DeleteModal>
 
-    <!-- Add Etablissement Modal -->
+    <!-- Delete Multiple Modal -->
+    <DeleteModal
+      v-if="showDeleteMultipleModal"
+      :isVisible="showDeleteMultipleModal"
+      title="Supprimer les entreprises sélectionnées"
+      @close="showDeleteMultipleModal = false"
+      @confirm="handleDeleteMultiple"
+    >
+      <p>Êtes-vous sûr de vouloir supprimer les {{ selectedEtablissements.length }} entreprises sélectionnées ? Cette action est irréversible.</p>
+    </DeleteModal>
+
+    <!-- Add Modal -->
     <BaseModal
+      v-if="showAddModal"
       :isVisible="showAddModal"
+      title="Ajouter une entreprise"
       @close="showAddModal = false"
     >
-      <template #header>
-        <h3>Ajouter un nouvel établissement</h3>
-      </template>
       <template #body>
         <form @submit.prevent="handleAddEtablissement">
           <div class="form-group">
@@ -132,7 +150,6 @@
               type="text"
               v-model="newEtablissement.phone"
               id="phone"
-              required
             />
           </div>
           <div class="form-group">
@@ -141,7 +158,6 @@
               type="url"
               v-model="newEtablissement.website"
               id="website"
-              required
             />
           </div>
           <div class="form-group">
@@ -181,7 +197,6 @@
         >Ajouter</button>
       </template>
     </BaseModal>
-
   </div>
 </template>
 
@@ -193,6 +208,10 @@ import DeleteModal from "@/components/modal/DeleteModal.vue";
 import BaseModal from "@/components/modal/BaseModal.vue";
 import { Etablissement } from "@/models/Etablissement";
 import router from "@/router";
+import { ApiService } from "@/services/APIService";
+
+// Services
+const api = new ApiService("http://localhost:4173/api");
 
 // Variables d'état
 const etablissementStore = useEtablissementStore();
@@ -200,9 +219,9 @@ const loading = ref(false);
 const currentPage = ref(1);
 const pageSize = ref(10);
 const etablissementToDelete = ref<Etablissement>();
-
 const showDeleteModal = ref(false);
 const showAddModal = ref(false);
+const showDeleteMultipleModal = ref(false);
 const newEtablissement = ref({
   name: "",
   address: "",
@@ -213,21 +232,30 @@ const newEtablissement = ref({
   siren: "",
 });
 
-// Filtres (exemple)
-const searchQuery = ref("");
+// Selection mode
+const selectionMode = ref(false);
+const selectedEtablissements = ref<string[]>([]);
 
-// Pagination
+// Computed properties
 const totalPages = computed(() => {
   return (
     Math.ceil(etablissementStore.etablissements.length / pageSize.value) || 1
   );
 });
 
-// Computed property for paginated data
 const paginatedEtablissements = computed(() => {
   const start = (currentPage.value - 1) * pageSize.value;
   const end = start + pageSize.value;
   return etablissementStore.etablissements.slice(start, end);
+});
+
+const isAllSelected = computed(() => {
+  return (
+    paginatedEtablissements.value.length > 0 &&
+    paginatedEtablissements.value.every((etablissement) =>
+      selectedEtablissements.value.includes(etablissement.id)
+    )
+  );
 });
 
 onMounted(async () => {
@@ -242,7 +270,7 @@ onMounted(async () => {
 });
 
 function goToEmailPage(email: string) {
-  console.log('ici')
+  console.log("ici");
   router.push({ name: "email", query: { to: email } });
 }
 
@@ -257,13 +285,74 @@ function openDeleteModal(id: string) {
   showDeleteModal.value = true;
 }
 
+function openDeleteMultipleModal() {
+  if (selectedEtablissements.value.length > 0) {
+    showDeleteMultipleModal.value = true;
+  }
+}
+
+function toggleSelectionMode() {
+  selectionMode.value = !selectionMode.value;
+  if (!selectionMode.value) {
+    selectedEtablissements.value = [];
+  }
+}
+
+function toggleSelect(id: string) {
+  const index = selectedEtablissements.value.indexOf(id);
+  if (index === -1) {
+    selectedEtablissements.value.push(id);
+  } else {
+    selectedEtablissements.value.splice(index, 1);
+  }
+}
+
+function toggleSelectAll() {
+  if (isAllSelected.value) {
+    selectedEtablissements.value = selectedEtablissements.value.filter(
+      (id) =>
+        !paginatedEtablissements.value.some(
+          (etablissement) => etablissement.id === id
+        )
+    );
+  } else {
+    paginatedEtablissements.value.forEach((etablissement) => {
+      if (!selectedEtablissements.value.includes(etablissement.id)) {
+        selectedEtablissements.value.push(etablissement.id);
+      }
+    });
+  }
+}
+
 async function handleDelete() {
   if (etablissementToDelete.value) {
-    await etablissementStore.deleteEtablissement(
-      etablissementToDelete.value.id
-    );
+    try {
+      await api.delete(`/etablissements/${etablissementToDelete.value.id}`);
+      // Mettre à jour le store après la suppression
+      await etablissementStore.fetchEtablissements();
+    } catch (error) {
+      console.error("Erreur lors de la suppression:", error);
+    }
   }
   showDeleteModal.value = false;
+}
+
+async function handleDeleteMultiple() {
+  loading.value = true;
+  try {
+    // Utiliser directement l'ApiService pour chaque suppression
+    for (const id of selectedEtablissements.value) {
+      await api.delete(`/etablissements/${id}`);
+    }
+    // Rafraîchir la liste après les suppressions
+    await etablissementStore.fetchEtablissements();
+    selectedEtablissements.value = [];
+  } catch (error) {
+    console.error("Erreur lors de la suppression multiple:", error);
+  } finally {
+    loading.value = false;
+    showDeleteMultipleModal.value = false;
+  }
 }
 
 async function handleAddEtablissement() {
@@ -291,12 +380,11 @@ function resetForm() {
 }
 </script>
 
-<style>
+<style scoped>
 .businesses-view {
   width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
   padding: 20px;
+  box-sizing: border-box;
 }
 
 .page-header {
@@ -316,6 +404,27 @@ function resetForm() {
 .header-actions {
   display: flex;
   gap: 12px;
+}
+
+.delete-selected-btn {
+  background-color: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 10px 16px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.delete-selected-btn i {
+  margin-right: 8px;
+}
+
+.delete-selected-btn:hover {
+  background-color: #dc2626;
 }
 
 .filters-container {
@@ -532,6 +641,30 @@ function resetForm() {
 
 .delete-btn:hover {
   background-color: #fecaca;
+}
+
+.selection-mode-btn {
+  background-color: #f3f4f6;
+  color: #6b7280;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.selection-mode-btn.active {
+  background-color: #4f46e5;
+  color: white;
+  border-color: #4f46e5;
+}
+
+.selection-mode-btn:hover:not(.active) {
+  background-color: #e5e7eb;
 }
 
 .pagination {
