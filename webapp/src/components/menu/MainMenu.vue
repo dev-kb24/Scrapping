@@ -19,6 +19,14 @@
             <i class="fas fa-globe"></i>
             <span>Scrapes</span>
           </router-link>
+          <router-link
+            to="/email"
+            class="nav-item"
+            active-class="active"
+          >
+            <i class="fas fa-envelope"></i>
+            <span>Envoi Email</span>
+          </router-link>
           <!-- <router-link
             to="/dashboard/preview-sites"
             class="nav-item"

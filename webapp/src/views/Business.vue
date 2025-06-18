@@ -61,6 +61,7 @@
         :etablissements="paginatedEtablissements"
         @loading="loading = $event"
         @delete="openDeleteModal($event)"
+        @email="goToEmailPage"
       />
 
       <div class="pagination">
@@ -191,6 +192,7 @@ import BusinessTable from "@/components/business/BusinessTable.vue";
 import DeleteModal from "@/components/modal/DeleteModal.vue";
 import BaseModal from "@/components/modal/BaseModal.vue";
 import { Etablissement } from "@/models/Etablissement";
+import router from "@/router";
 
 // Variables d'état
 const etablissementStore = useEtablissementStore();
@@ -238,6 +240,11 @@ onMounted(async () => {
     loading.value = false;
   }
 });
+
+function goToEmailPage(email: string) {
+  console.log('ici')
+  router.push({ name: "email", query: { to: email } });
+}
 
 function goToPage(page: number) {
   if (page < 1 || page > totalPages.value) return;

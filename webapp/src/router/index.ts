@@ -1,7 +1,4 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import Dashboard from '@/views/Dashboard.vue'
-import MainLayout from '@/components/layout/MainLayout.vue'
-import Business from '@/views/Business.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -33,6 +30,14 @@ const router = createRouter({
           component: () => import("@/views/Scrape.vue"),
            meta: {
             title: 'Scrape'
+          }
+        },
+        {
+          path: 'email',
+          name: 'email',
+          component: () => import("@/views/Email.vue"),
+           meta: {
+            title: 'Email'
           }
         }
       ]
