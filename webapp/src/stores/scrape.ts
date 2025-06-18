@@ -3,7 +3,7 @@ import { ApiService } from "@/services/APIService";
 import { defineStore } from "pinia";
 import { ref } from "vue";
 
-const api = new ApiService('http://localhost:8000/api');
+const api = new ApiService('http://localhost:4173/api');
 
 export const useScrapeStore = defineStore('scrape', () => {
   const scrapes = ref<Scrape[]>([]);
@@ -23,6 +23,8 @@ export const useScrapeStore = defineStore('scrape', () => {
       console.log(error);
     }
   };
+
+  // Méthode addScrape supprimée
 
   return { scrapes, fetchScrapes, deleteScrape };
 });

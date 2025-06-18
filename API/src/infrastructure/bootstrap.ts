@@ -11,7 +11,7 @@ import { MysqlScrapeRepository } from './database/MysqlScrapeRepository';
 export class Bootstrap {
     startApp = async () => {
         const app = express();
-        const PORT = process.env.PORT || 3000;
+        const PORT = process.env.PORT_BACK || 4173;
         const repoEtablissement = new MysqlEtablissementRepository(dbConfig);
         const repoScrape = new MysqlScrapeRepository(dbConfig);
         await repoEtablissement.initEstablishement();
@@ -20,7 +20,7 @@ export class Bootstrap {
         const batchRouter = new BatchRouter(repoEtablissement, repoScrape);
         const scrapeRouter = new ScrapeRouter(repoScrape);
         app.use(cors({
-          origin: 'http://localhost:5173',
+          origin: 'http://127.0.0.1:4173',
           credentials: true
         }));
         app.use(express.json());
@@ -29,7 +29,7 @@ export class Bootstrap {
         app.use('/api', scrapeRouter.getRoutes());
         
         app.listen(PORT, () => {
-          console.log(`Serveur lancé sur http://localhost:${PORT}`);
+          console.log(`Serveur lancé sur le port ${PORT}`);
         });
     }
 }
