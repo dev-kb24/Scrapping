@@ -1,12 +1,11 @@
 import { Request, Response } from 'express';
-import { Etablissement } from '../../domain/entities/Etablissement';
 import { GetAllScrapeUseCase } from '../../applications/scrapes/usecases/GetAllScrapeUseCase';
 import { Scrape } from '../../domain/entities/Scrape';
 
 export class ScrapeController {
   constructor(
     private getAllScrapeUseCase: GetAllScrapeUseCase
-) {}
+  ) {}
 
   getAll = async (req: Request, res: Response) => {
     try {

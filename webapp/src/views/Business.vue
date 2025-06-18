@@ -2,15 +2,19 @@
   <div class="businesses-view">
     <div class="page-header">
       <h1>Entreprises</h1>
-      <!-- <div class="header-actions">
-        <button class="btn primary" @click="refreshBusinesses">
-          <i class="fas fa-sync-alt"></i> Rafraîchir
-        </button>
-      </div> -->
+      <button
+        class="new-etablissement-btn"
+        @click="showAddModal = true"
+      >
+        <i class="fas fa-plus"></i>
+        Ajouter
+      </button>
     </div>
 
-
-    <div v-if="loading" class="loading-container">
+    <div
+      v-if="loading"
+      class="loading-container"
+    >
       <div class="spinner"></div>
       <p>Chargement des entreprises...</p>
     </div>
@@ -30,25 +34,57 @@
       </router-link>
     </div> -->
 
-    <div v-else class="businesses-container">
-    
-      <BusinessTable @loading="loading = $event" @delete="openDeleteModal($event)" />
+    <div
+      v-else
+      class="businesses-container"
+    >
+      <!-- Quantity selector -->
+      <div class="table-controls">
+        <div class="quantity-selector">
+          <label for="pageSize">Afficher :</label>
+          <select
+            id="pageSize"
+            v-model="pageSize"
+            @change="currentPage = 1"
+          >
+            <option value="5">5</option>
+            <option value="10">10</option>
+            <option value="25">25</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+          </select>
+          <span>éléments par page</span>
+        </div>
+      </div>
+
+      <BusinessTable
+        :etablissements="paginatedEtablissements"
+        :selectedIds="selectedEtablissements"
+        @loading="loading = $event"
+        @delete="openDeleteModal($event)"
+        @toggle-select="toggleSelect"
+        @delete-multiple="showDeleteMultipleModal = true"
+        @clear-selection="selectedEtablissements = []"
+        @select-all="selectAll"
+        @deselect-all="deselectAll"
+      />
+
       <div class="pagination">
-        <button 
-          class="btn-pagination" 
-          @click="goToPage(currentPage - 1)" 
+        <button
+          class="btn-pagination"
+          @click="goToPage(currentPage - 1)"
           :disabled="currentPage === 1"
         >
           <i class="fas fa-chevron-left"></i>
         </button>
-        
+
         <span class="page-info">
-          Page {{ currentPage }} sur {{ totalPages }}
+          Page {{ currentPage }} sur {{ totalPages }} ({{ etablissementStore.etablissements.length }} éléments au total)
         </span>
-        
-        <button 
-          class="btn-pagination" 
-          @click="goToPage(currentPage + 1)" 
+
+        <button
+          class="btn-pagination"
+          @click="goToPage(currentPage + 1)"
           :disabled="currentPage === totalPages"
         >
           <i class="fas fa-chevron-right"></i>
@@ -56,44 +92,153 @@
       </div>
     </div>
 
-   <!-- Delete Modal -->
+    <!-- Delete Modal -->
     <DeleteModal
       :isVisible="showDeleteModal"
       @close="showDeleteModal = false"
       @confirm="handleDelete"
     >
-      <template #body>
-        <p>Voulez-vous supprimer l'entreprise : {{ etablissementToDelete?.name }}</p>
-      </template>
+      <p>Voulez-vous supprimer l'entreprise : {{ etablissementToDelete?.name }}</p>
     </DeleteModal>
+
+    <!-- Delete Multiple Modal -->
+    <DeleteModal
+      :isVisible="showDeleteMultipleModal"
+      @close="showDeleteMultipleModal = false"
+      @confirm="handleDeleteMultiple"
+    >
+      <p>Voulez-vous supprimer les {{ selectedEtablissements.length }} entreprises sélectionnées ?</p>
+    </DeleteModal>
+
+    <!-- Add Etablissement Modal -->
+    <BaseModal
+      :isVisible="showAddModal"
+      @close="showAddModal = false"
+    >
+      <template #header>
+        <h3>Ajouter un nouvel établissement</h3>
+      </template>
+      <template #body>
+        <form @submit.prevent="handleAddEtablissement">
+          <div class="form-group">
+            <label for="name">Nom:</label>
+            <input
+              type="text"
+              v-model="newEtablissement.name"
+              id="name"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label for="address">Adresse:</label>
+            <input
+              type="text"
+              v-model="newEtablissement.address"
+              id="address"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label for="phone">Téléphone:</label>
+            <input
+              type="text"
+              v-model="newEtablissement.phone"
+              id="phone"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label for="website">Site web:</label>
+            <input
+              type="url"
+              v-model="newEtablissement.website"
+              id="website"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label for="email">Email:</label>
+            <input
+              type="email"
+              v-model="newEtablissement.email"
+              id="email"
+            />
+          </div>
+          <div class="form-group">
+            <label for="siret">SIRET:</label>
+            <input
+              type="text"
+              v-model="newEtablissement.siret"
+              id="siret"
+            />
+          </div>
+          <div class="form-group">
+            <label for="siren">SIREN:</label>
+            <input
+              type="text"
+              v-model="newEtablissement.siren"
+              id="siren"
+            />
+          </div>
+        </form>
+      </template>
+      <template #footer>
+        <button
+          class="cancel-btn"
+          @click="showAddModal = false"
+        >Annuler</button>
+        <button
+          class="submit-btn"
+          @click="handleAddEtablissement"
+        >Ajouter</button>
+      </template>
+    </BaseModal>
 
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
-import { useEtablissementStore } from '@/stores/etablissement';
-import BusinessTable from '@/components/business/BusinessTable.vue';
-import DeleteModal from '@/components/modal/DeleteModal.vue';
-import { Etablissement } from '@/models/Etablissement';
+import { ref, computed, onMounted } from "vue";
+import { useEtablissementStore } from "@/stores/etablissement";
+import BusinessTable from "@/components/business/BusinessTable.vue";
+import DeleteModal from "@/components/modal/DeleteModal.vue";
+import BaseModal from "@/components/modal/BaseModal.vue";
+import type { Etablissement } from "@/models/Etablissement";
 
 // Variables d'état
 const etablissementStore = useEtablissementStore();
 const loading = ref(false);
-const businesses = ref<any[]>([]); 
 const currentPage = ref(1);
 const pageSize = ref(10);
-const etablissementToDelete = ref<Etablissement>();
+const etablissementToDelete = ref<Etablissement | undefined>();
+const selectedEtablissements = ref<string[]>([]);
 
 const showDeleteModal = ref(false);
-
+const showDeleteMultipleModal = ref(false);
+const showAddModal = ref(false);
+const newEtablissement = ref({
+  name: "",
+  address: "",
+  phone: "",
+  website: "",
+  email: "",
+  siret: "",
+  siren: "",
+});
 
 // Filtres (exemple)
-const searchQuery = ref('');
+const searchQuery = ref("");
 
 // Pagination
 const totalPages = computed(() => {
-  return Math.ceil(filteredBusinesses.value.length / pageSize.value) || 1;
+  return Math.ceil(etablissementStore.etablissements.length / pageSize.value);
+});
+
+// Computed property for paginated data
+const paginatedEtablissements = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value;
+  const end = start + pageSize.value;
+  return etablissementStore.etablissements.slice(start, end);
 });
 
 onMounted(async () => {
@@ -101,18 +246,10 @@ onMounted(async () => {
   try {
     await etablissementStore.fetchEtablissements();
   } catch (error) {
-    console.error('Erreur lors de la récupération des entreprises:', error);
+    console.error("Erreur lors de la récupération des entreprises:", error);
   } finally {
     loading.value = false;
   }
-});
-
-// Filtrage des entreprises
-const filteredBusinesses = computed(() => {
-  if (!searchQuery.value) return businesses.value;
-  return businesses.value.filter(b =>
-    b.name?.toLowerCase().includes(searchQuery.value.toLowerCase())
-  );
 });
 
 function goToPage(page: number) {
@@ -120,7 +257,7 @@ function goToPage(page: number) {
   currentPage.value = page;
 }
 
-function openDeleteModal(id: string){
+function openDeleteModal(id: string) {
   const found = etablissementStore.findEtablissement(id);
   etablissementToDelete.value = found === null ? undefined : found;
   showDeleteModal.value = true;
@@ -128,19 +265,83 @@ function openDeleteModal(id: string){
 
 async function handleDelete() {
   if (etablissementToDelete.value) {
-    await etablissementStore.deleteEtablissement(etablissementToDelete.value.id);
+    await etablissementStore.deleteEtablissement(
+      etablissementToDelete.value.id
+    );
   }
   showDeleteModal.value = false;
 }
 
+async function handleAddEtablissement() {
+  try {
+    await etablissementStore.addEtablissement({
+      ...newEtablissement.value,
+    });
+    resetForm();
+    showAddModal.value = false;
+  } catch (error) {
+    console.error("Error adding etablissement:", error);
+  }
+}
+
+function resetForm() {
+  newEtablissement.value = {
+    name: "",
+    address: "",
+    phone: "",
+    website: "",
+    email: "",
+    siret: "",
+    siren: "",
+  };
+}
+
+function toggleSelect(id: string) {
+  console.log("Toggle select:", id);
+  const index = selectedEtablissements.value.indexOf(id);
+  if (index === -1) {
+    selectedEtablissements.value.push(id);
+  } else {
+    selectedEtablissements.value.splice(index, 1);
+  }
+}
+
+function selectAll(ids: string[]) {
+  // Ajouter tous les IDs qui ne sont pas déjà sélectionnés
+  ids.forEach((id) => {
+    if (!selectedEtablissements.value.includes(id)) {
+      selectedEtablissements.value.push(id);
+    }
+  });
+}
+
+function deselectAll(ids: string[]) {
+  // Filtrer les IDs à désélectionner
+  selectedEtablissements.value = selectedEtablissements.value.filter(
+    (id) => !ids.includes(id)
+  );
+}
+
+async function handleDeleteMultiple() {
+  loading.value = true;
+  try {
+    for (const id of selectedEtablissements.value) {
+      await etablissementStore.deleteEtablissement(id);
+    }
+    selectedEtablissements.value = [];
+  } catch (error) {
+    console.error("Erreur lors de la suppression multiple:", error);
+  } finally {
+    loading.value = false;
+    showDeleteMultipleModal.value = false;
+  }
+}
 </script>
 
 <style>
 .businesses-view {
   width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
+  padding: 20px 30px;
 }
 
 .page-header {
@@ -238,8 +439,12 @@ async function handleDelete() {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .error-message {
@@ -289,6 +494,9 @@ async function handleDelete() {
   border-radius: 8px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   overflow: hidden;
+  width: 100%;
+  padding: 0;
+  margin: 0;
 }
 
 .businesses-table {
@@ -409,6 +617,128 @@ async function handleDelete() {
 .page-info {
   font-size: 14px;
   color: #4b5563;
+  font-weight: 500;
+}
+
+.table-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background-color: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.quantity-selector {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #1f2937;
+  font-weight: 500;
+}
+
+.quantity-selector label {
+  font-weight: 600;
+  color: #374151;
+}
+
+.quantity-selector select {
+  padding: 6px 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 14px;
+  background-color: white;
+  color: #1f2937;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.quantity-selector select:focus {
+  outline: none;
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1);
+}
+
+.quantity-selector span {
+  color: #374151;
+  font-weight: 500;
+}
+
+.new-etablissement-btn {
+  background-color: #4f46e5;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 10px 16px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.new-etablissement-btn i {
+  margin-right: 8px;
+}
+
+.new-etablissement-btn:hover {
+  background-color: #4338ca;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 14px;
+  transition: border-color 0.2s;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1);
+}
+
+.cancel-btn {
+  background-color: #9ca3af;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 16px;
+  margin-right: 10px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.cancel-btn:hover {
+  background-color: #6b7280;
+}
+
+.submit-btn {
+  background-color: #4f46e5;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.submit-btn:hover {
+  background-color: #4338ca;
 }
 
 .btn {
@@ -468,7 +798,8 @@ async function handleDelete() {
   border-radius: 8px;
   width: 100%;
   max-width: 500px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
   overflow: hidden;
 }
 
