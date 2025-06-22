@@ -14,7 +14,7 @@ import { emailConfig } from '../config/email';
 export class Bootstrap {
     startApp = async () => {
         const app = express();
-        const PORT = process.env.PORT_BACK || 4173;
+        const PORT = process.env.PORT_BACK || 8000;
         const repoEtablissement = new MysqlEtablissementRepository(dbConfig);
         const repoScrape = new MysqlScrapeRepository(dbConfig);
         const repoEmail = new EmailRepository(emailConfig);

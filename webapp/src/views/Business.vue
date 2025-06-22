@@ -211,7 +211,7 @@ import router from "@/router";
 import { ApiService } from "@/services/APIService";
 
 // Services
-const api = new ApiService("http://localhost:4173/api");
+const api = new ApiService("http://localhost:8000/api");
 
 // Variables d'état
 const etablissementStore = useEtablissementStore();

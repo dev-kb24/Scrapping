@@ -177,7 +177,7 @@ import BaseModal from "@/components/modal/BaseModal.vue";
 import ScrapeTable from "@/components/Scrape/ScrapeTable.vue";
 import { ApiService } from "@/services/APIService";
 
-const api = new ApiService("http://localhost:4173/api");
+const api = new ApiService("http://localhost:8000/api");
 const scrapeStore = useScrapeStore();
 const loading = ref(false);
 const showDeleteModal = ref(false);
