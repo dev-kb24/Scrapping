@@ -30,14 +30,6 @@
       <i class="fas fa-envelope"></i>
       <span>Envoi Email</span>
     </router-link>
-    <!-- <router-link
-            to="/dashboard/preview-sites"
-            class="nav-item"
-            active-class="active"
-          > -->
-    <!-- <i class="fas fa-desktop"></i>
-            <span>Preview Sites</span>
-          </router-link> -->
     <router-link
       to="/entreprises"
       class="nav-item"
@@ -46,6 +38,14 @@
     >
       <i class="fas fa-store"></i>
       <span>Entreprises</span>
+    </router-link>
+    <router-link
+      to="/site-creator"
+      class="nav-item"
+      active-class="active"
+    >
+      <i class="fas fa-code"></i>
+      <span>Site creator</span>
     </router-link>
     <!--  <router-link
             to="/dashboard/prospects"
