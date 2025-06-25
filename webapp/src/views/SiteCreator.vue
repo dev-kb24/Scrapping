@@ -122,7 +122,7 @@
           <!-- Iframe de DeepSite V2 -->
           <div class="iframe-container">
             <iframe
-              src="https://enzostvs-deepsite.hf.space"
+              src="https://deepsite.hf.co/projects/new"
               title="DeepSite V2"
               allow="clipboard-read; clipboard-write"
               frameborder="0"
@@ -134,44 +134,44 @@
         </div>
       </div>
 
-      <!-- Modal pour les prompts -->
-      <div
+      <!-- Modal pour les prompts avec BaseModal -->
+      <BaseModal
         v-if="showPromptModal"
-        class="modal-overlay"
-        @click.self="showPromptModal = false"
+        :isVisible="showPromptModal"
+        @close="showPromptModal = false"
       >
-        <div class="modal-content">
-          <div class="modal-header">
-            <h3>Liste des Prompts</h3>
-            <button
-              class="close-btn"
-              @click="showPromptModal = false"
+        <template #header>
+          <h3>Liste des Prompts</h3>
+        </template>
+        <template #body>
+          <div class="prompt-list">
+            <div
+              v-for="(prompt, index) in prompts"
+              :key="index"
+              class="prompt-item"
             >
-              <i class="fas fa-times"></i>
-            </button>
-          </div>
-          <div class="modal-body">
-            <div class="prompt-list">
-              <div
-                v-for="(prompt, index) in prompts"
-                :key="index"
-                class="prompt-item"
-              >
-                <h4>{{ prompt.title }}</h4>
-                <p>{{ prompt.description }}</p>
-                <div class="prompt-actions">
-                  <button
-                    class="copy-prompt-btn"
-                    @click="copyPromptToClipboard(prompt)"
-                  >
-                    <i class="fas fa-copy"></i> Copier le prompt
-                  </button>
-                </div>
+              <h4>{{ prompt.title }}</h4>
+              <p>{{ prompt.description }}</p>
+              <div class="prompt-actions">
+                <button
+                  class="copy-prompt-btn"
+                  @click="copyPromptToClipboard(prompt)"
+                >
+                  <i class="fas fa-copy"></i> Copier le prompt
+                </button>
               </div>
             </div>
           </div>
-        </div>
-      </div>
+        </template>
+        <template #footer>
+          <button
+            class="close-modal-btn"
+            @click="showPromptModal = false"
+          >
+            Fermer
+          </button>
+        </template>
+      </BaseModal>
 
       <!-- Notification de copie -->
       <div
@@ -188,6 +188,7 @@
 import { ref } from "vue";
 import { useEtablissementStore } from "@/stores/etablissement";
 import { ApiService } from "@/services/APIService";
+import BaseModal from "@/components/modal/BaseModal.vue";
 
 // Services
 const api = new ApiService("http://localhost:8000/api");
@@ -600,6 +601,22 @@ async function copyPromptToClipboard(prompt: any) {
 }
 
 .copy-prompt-btn:hover {
+  background-color: #e5e7eb;
+}
+
+.close-modal-btn {
+  padding: 8px 16px;
+  background-color: #f3f4f6;
+  color: #4b5563;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.close-modal-btn:hover {
   background-color: #e5e7eb;
 }
 
