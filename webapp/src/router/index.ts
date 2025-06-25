@@ -39,6 +39,14 @@ const router = createRouter({
            meta: {
             title: 'Email'
           }
+        },
+        {
+          path: 'site-creator',
+          name: 'site-creator',
+          component: () => import("@/views/SiteCreator.vue"),
+           meta: {
+            title: 'Site Creator'
+          }
         }
       ]
     }

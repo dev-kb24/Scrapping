@@ -14,8 +14,8 @@
         <h3
           class="sidebar-section"
           id="main-nav-heading"
-        >MAIN</h3>
-            <MainMenu />
+        >MENU</h3>
+        <MainMenu />
         <!-- <h3
           class="sidebar-section"
           id="tools-nav-heading"
@@ -147,7 +147,6 @@ const closeProfileMenu = (event: MouseEvent) => {
 
 // Fetch user data if needed
 onMounted(() => {
-
   document.addEventListener("click", closeProfileMenu);
 
   return () => {
