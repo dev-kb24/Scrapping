@@ -3,6 +3,14 @@
     <div class="page-header">
       <h1>Entreprises</h1>
       <div class="header-actions">
+        <div class="view-toggle">
+          <button
+            :class="['view-btn', { active: viewMode === 'kanban' }]"
+            @click="$router.push('/entreprises/kanban')"
+          >
+            <i class="fas fa-columns"></i> Kanban
+          </button>
+        </div>
         <button
           v-if="selectionMode && selectedEtablissements.length > 0"
           class="delete-selected-btn"
