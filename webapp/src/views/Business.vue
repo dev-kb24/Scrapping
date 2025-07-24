@@ -278,8 +278,21 @@ onMounted(async () => {
 });
 
 function goToEmailPage(email: string) {
-  console.log("ici");
-  router.push({ name: "email", query: { to: email } });
+  // Trouver l'établissement complet par email
+  const etablissement = etablissementStore.etablissements.find(
+    (e) => e.email === email
+  );
+
+  router.push({
+    name: "email",
+    query: {
+      to: email,
+      etablissementId: etablissement?.id,
+      etablissementName: etablissement?.name,
+      etablissementAddress: etablissement?.address,
+      etablissementPhone: etablissement?.phone,
+    },
+  });
 }
 
 function goToPage(page: number) {

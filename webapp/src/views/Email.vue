@@ -26,12 +26,127 @@
         <!-- Card de recherche d'établissement -->
         <div class="card search-card">
           <h3>Rechercher un établissement</h3>
-          <div class="search-input">
-            <input
-              type="text"
-              placeholder="Rechercher un établissement..."
-            />
-            <button class="search-btn"><i class="fas fa-search"></i></button>
+          <div class="search-container">
+            <div class="search-input">
+              <input
+                v-model="searchQuery"
+                type="text"
+                placeholder="Rechercher un établissement..."
+                @input="onSearchInput"
+                @focus="showSearchResults = true"
+                @blur="closeSearchResults"
+              />
+              <button
+                class="search-btn"
+                @click="performSearch"
+              >
+                <i class="fas fa-search"></i>
+              </button>
+            </div>
+
+            <!-- Résultats de recherche -->
+            <div
+              v-if="showSearchResults && searchQuery.length >= 2"
+              class="search-results"
+            >
+              <div
+                v-if="searchLoading"
+                class="search-loading"
+              >
+                <i class="fas fa-spinner fa-spin"></i> Recherche...
+              </div>
+
+              <div
+                v-else-if="filteredEtablissements.length === 0"
+                class="no-results"
+              >
+                Aucun établissement trouvé
+              </div>
+
+              <div
+                v-else
+                class="results-list"
+              >
+                <div
+                  v-for="etablissement in filteredEtablissements.slice(0, 5)"
+                  :key="etablissement.id"
+                  class="result-item"
+                  @click="selectEtablissement(etablissement)"
+                >
+                  <div class="result-main">
+                    <strong>{{ etablissement.name }}</strong>
+                    <span class="result-email">{{ etablissement.email }}</span>
+                  </div>
+                  <div
+                    v-if="etablissement.address"
+                    class="result-address"
+                  >
+                    {{ etablissement.address }}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card établissement sélectionné -->
+        <div
+          v-if="selectedEtablissement"
+          class="card etablissement-card"
+        >
+          <div class="card-header">
+            <h3>Destinataire</h3>
+            <button
+              class="clear-btn"
+              @click="clearSelectedEtablissement"
+              title="Effacer la sélection"
+            >
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+          <div class="etablissement-info">
+            <div class="etablissement-name">
+              <i class="fas fa-building"></i>
+              <strong>{{ selectedEtablissement.name }}</strong>
+            </div>
+            <div
+              v-if="selectedEtablissement.address"
+              class="etablissement-detail"
+            >
+              <i class="fas fa-map-marker-alt"></i>
+              <span>{{ selectedEtablissement.address }}</span>
+            </div>
+            <div
+              v-if="selectedEtablissement.phone"
+              class="etablissement-detail"
+            >
+              <i class="fas fa-phone"></i>
+              <span>{{ selectedEtablissement.phone }}</span>
+            </div>
+            <div
+              v-if="selectedEtablissement.email"
+              class="etablissement-detail"
+            >
+              <i class="fas fa-envelope"></i>
+              <span>{{ selectedEtablissement.email }}</span>
+            </div>
+            <div
+              v-if="selectedEtablissement.website"
+              class="etablissement-detail"
+            >
+              <i class="fas fa-globe"></i>
+              <a
+                :href="selectedEtablissement.website"
+                target="_blank"
+              >Site web</a>
+            </div>
+            <div
+              v-if="selectedEtablissement.siret"
+              class="etablissement-detail"
+            >
+              <i class="fas fa-id-card"></i>
+              <small>SIRET: {{ selectedEtablissement.siret }}</small>
+            </div>
           </div>
         </div>
       </div>
@@ -158,20 +273,25 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, onMounted, computed } from "vue";
 import { useRoute } from "vue-router";
+import { useEtablissementStore } from "@/stores/etablissement";
 import MarkdownComponent from "@/components/markdown/MarkdownComponent.vue";
 import { ApiService } from "@/services/APIService";
 import BaseModal from "@/components/modal/BaseModal.vue";
 
 const route = useRoute();
+const etablissementStore = useEtablissementStore();
+
+// Variables existantes
 const from = ref("");
 const to = ref((route.query.to as string) || "");
-const subject = ref("");
+const subject = ref((route.query.subject as string) || "");
 const markdown = ref("");
 const loading = ref(false);
 const success = ref(false);
 const error = ref("");
+const selectedEtablissement = ref<any>(null);
 
 // Ajout pour le modal de template
 const showAddTemplateModal = ref(false);
@@ -181,7 +301,101 @@ const newTemplate = ref({
   body: "",
 });
 
+// Nouvelles variables pour la recherche
+const searchQuery = ref("");
+const showSearchResults = ref(false);
+const searchLoading = ref(false);
+
+// Résultats de recherche filtrés
+const filteredEtablissements = computed(() => {
+  if (!searchQuery.value || searchQuery.value.length < 2) {
+    return [];
+  }
+
+  const query = searchQuery.value.toLowerCase();
+  return etablissementStore.etablissements.filter(
+    (etablissement) =>
+      etablissement.name?.toLowerCase().includes(query) ||
+      etablissement.email?.toLowerCase().includes(query) ||
+      etablissement.address?.toLowerCase().includes(query)
+  );
+});
+
 const api = new ApiService("http://localhost:8000/api");
+
+// Charger les établissements au montage
+onMounted(async () => {
+  // Charger les infos depuis les query params (existant)
+  if (route.query.etablissementId) {
+    selectedEtablissement.value = {
+      id: route.query.etablissementId,
+      name: route.query.etablissementName,
+      address: route.query.etablissementAddress,
+      phone: route.query.etablissementPhone,
+      email: route.query.to,
+      website: route.query.etablissementWebsite,
+      siret: route.query.etablissementSiret,
+    };
+  }
+
+  // Charger les établissements pour la recherche
+  if (etablissementStore.etablissements.length === 0) {
+    try {
+      await etablissementStore.fetchEtablissements();
+    } catch (error) {
+      console.error("Erreur lors du chargement des établissements:", error);
+    }
+  }
+});
+
+const onSearchInput = () => {
+  if (searchQuery.value.length >= 2) {
+    showSearchResults.value = true;
+  } else {
+    showSearchResults.value = false;
+  }
+};
+
+const performSearch = () => {
+  if (searchQuery.value.length >= 2) {
+    showSearchResults.value = true;
+  }
+};
+
+const selectEtablissement = (etablissement: any) => {
+  // Mettre à jour l'établissement sélectionné (comme si on venait des autres vues)
+  selectedEtablissement.value = {
+    id: etablissement.id,
+    name: etablissement.name,
+    address: etablissement.address,
+    phone: etablissement.phone,
+    email: etablissement.email,
+    website: etablissement.website,
+    siret: etablissement.siret,
+  };
+
+  // Pré-remplir les champs du formulaire
+  to.value = etablissement.email || "";
+  subject.value = `Contact - ${etablissement.name}`;
+
+  // Fermer les résultats de recherche
+  showSearchResults.value = false;
+  searchQuery.value = "";
+};
+
+const clearSelectedEtablissement = () => {
+  selectedEtablissement.value = null;
+  // Optionnel : vider aussi les champs
+  to.value = "";
+  subject.value = "";
+};
+
+// Fermer les résultats si on clique ailleurs
+const closeSearchResults = () => {
+  setTimeout(() => {
+    showSearchResults.value = false;
+  }, 200);
+};
 
 async function sendEmail() {
   loading.value = true;
@@ -225,7 +439,7 @@ function addTemplate() {
   width: 100%;
   max-width: none;
   margin: 0 auto;
-  padding: 32px 16px;
+  padding: 32px 32px 32px 16px;
   background: #fff;
 }
 
@@ -448,5 +662,149 @@ function addTemplate() {
   .email-container {
     flex-direction: column;
   }
+}
+
+.search-container {
+  position: relative;
+}
+
+.search-results {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.search-loading {
+  padding: 16px;
+  text-align: center;
+  color: #6b7280;
+}
+
+.no-results {
+  padding: 16px;
+  text-align: center;
+  color: #6b7280;
+  font-style: italic;
+}
+
+.results-list {
+  max-height: 250px;
+  overflow-y: auto;
+}
+
+.result-item {
+  padding: 12px 16px;
+  cursor: pointer;
+  border-bottom: 1px solid #f3f4f6;
+  transition: background-color 0.2s;
+}
+
+.result-item:hover {
+  background-color: #f9fafb;
+}
+
+.result-item:last-child {
+  border-bottom: none;
+}
+
+.result-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.result-main strong {
+  color: #111827;
+  font-size: 14px;
+}
+
+.result-email {
+  color: #4f46e5;
+  font-size: 12px;
+}
+
+.result-address {
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.etablissement-card {
+  border-left: 4px solid #4f46e5;
+  padding: 20px;
+}
+
+.etablissement-info {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.etablissement-name {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 16px;
+  color: #111827;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.etablissement-name i {
+  color: #4f46e5;
+  font-size: 18px;
+}
+
+.etablissement-detail {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  color: #6b7280;
+  padding: 4px 0;
+}
+
+.etablissement-detail i {
+  width: 18px;
+  color: #9ca3af;
+  text-align: center;
+}
+
+.etablissement-detail a {
+  color: #4f46e5;
+  text-decoration: none;
+}
+
+.etablissement-detail a:hover {
+  text-decoration: underline;
+}
+
+.etablissement-detail:last-child {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #f3f4f6;
+}
+
+.clear-btn {
+  background: none;
+  border: none;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.clear-btn:hover {
+  background-color: #f3f4f6;
+  color: #ef4444;
 }
 </style>

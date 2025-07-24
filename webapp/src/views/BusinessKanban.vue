@@ -94,6 +94,12 @@ const goToEmailPage = (etablissement: any) => {
     query: {
       to: etablissement.email,
       subject: `Contact - ${etablissement.name}`,
+      etablissementId: etablissement.id,
+      etablissementName: etablissement.name,
+      etablissementAddress: etablissement.address,
+      etablissementPhone: etablissement.phone,
+      etablissementWebsite: etablissement.website,
+      etablissementSiret: etablissement.siret,
     },
   });
 };
@@ -137,6 +143,7 @@ onMounted(async () => {
   margin: 20px;
 }
 </style>
+
 
 
 
