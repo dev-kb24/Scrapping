@@ -19,6 +19,7 @@
         <th>Site web</th>
         <th>Siret</th>
         <th>Siren</th>
+        <th>Statut</th>
         <th>Actions</th>
         <th
           v-if="selectionMode"
@@ -174,10 +175,33 @@
             placeholder="Siren"
           >
         </td>
+        <td>
+          <div v-if="!updatingInProgress[business.id]">
+            <span
+              v-if="business.status"
+              :class="['status-badge', business.status.toLowerCase()]"
+            >
+              {{ getStatusLabel(business.status) }}
+            </span>
+            <span
+              v-else
+              class="empty-value"
+            >Non défini</span>
+          </div>
+          <select
+            v-else
+            v-model="business.status"
+            class="business-select"
+          >
+            <option value="">-- Sélectionner --</option>
+            <option value="prospect">Prospect</option>
+            <option value="contacted">Contacté</option>
+            <option value="negotiation">Négociation</option>
+            <option value="client">Client</option>
+            <option value="inactive">Inactif</option>
+          </select>
+        </td>
         <td class="actions-cell">
-          <!-- <button class="btn-icon view-btn" @click="$emit('view', business._id)" title="Voir les détails">
-              <i class="fas fa-eye"></i>
-            </button> -->
           <button
             v-if="!updatingInProgress[business.id]"
             class="btn-icon edit-btn"
@@ -187,16 +211,29 @@
             <i class="fas fa-edit"></i>
           </button>
 
-          <button
+          <div
             v-if="updatingInProgress[business.id]"
-            class="btn-icon edit-btn"
-            @click="closeUpdatingEtablissement(business.id)"
-            title="Valider"
+            class="edit-actions"
           >
-            <i class="fas fa-square-check"></i>
-          </button>
+            <button
+              class="btn-icon validate-btn"
+              @click="closeUpdatingEtablissement(business.id)"
+              title="Valider"
+            >
+              <i class="fas fa-square-check"></i>
+            </button>
+
+            <button
+              class="btn-icon cancel-btn"
+              @click="cancelUpdatingEtablissement(business.id)"
+              title="Annuler"
+            >
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
 
           <button
+            v-if="!updatingInProgress[business.id]"
             class="btn-icon delete-btn"
             @click="$emit('delete', business.id)"
             title="Supprimer"
@@ -205,6 +242,7 @@
           </button>
 
           <button
+            v-if="!updatingInProgress[business.id]"
             class="btn-icon email-btn"
             @click="$emit('email', business.email)"
             :disabled="!business.email"
@@ -255,6 +293,7 @@ const etablissementStore = useEtablissementStore();
 const sortEmailActive = ref(false);
 
 const updatingInProgress: Ref<Record<string, boolean>> = ref({});
+const originalValues: Ref<Record<string, any>> = ref({});
 
 computed(() => {
   props.etablissements.forEach((etablissement) => {
@@ -279,7 +318,45 @@ function openUpdatingEtablissement(id: string) {
   if (!id) {
     return false;
   }
+
+  const etablissement = props.etablissements.find((e) => e.id === id);
+  if (etablissement) {
+    originalValues.value[id] = {
+      name: etablissement.name,
+      address: etablissement.address,
+      email: etablissement.email,
+      phone: etablissement.phone,
+      website: etablissement.website,
+      siret: etablissement.siret,
+      siren: etablissement.siren,
+      status: etablissement.status,
+    };
+  }
+
   updatingInProgress.value[id] = true;
+}
+
+function cancelUpdatingEtablissement(id: string) {
+  if (!id) {
+    return false;
+  }
+
+  const etablissement = props.etablissements.find((e) => e.id === id);
+  const original = originalValues.value[id];
+
+  if (etablissement && original) {
+    etablissement.name = original.name;
+    etablissement.address = original.address;
+    etablissement.email = original.email;
+    etablissement.phone = original.phone;
+    etablissement.website = original.website;
+    etablissement.siret = original.siret;
+    etablissement.siren = original.siren;
+    etablissement.status = original.status;
+  }
+
+  updatingInProgress.value[id] = false;
+  delete originalValues.value[id];
 }
 
 async function closeUpdatingEtablissement(id: string) {
@@ -287,11 +364,23 @@ async function closeUpdatingEtablissement(id: string) {
     return false;
   }
   updatingInProgress.value[id] = false;
+  delete originalValues.value[id];
   await etablissementStore.updateEtablissement(id);
 }
 
 const formatWebsite = (website: string) => {
   return website.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "");
+};
+
+const getStatusLabel = (status: string) => {
+  const labels: Record<string, string> = {
+    prospect: "Prospect",
+    contacted: "Contacté",
+    negotiation: "Négociation",
+    client: "Client",
+    inactive: "Inactif",
+  };
+  return labels[status] || status;
 };
 </script>
 <style scoped>
@@ -458,5 +547,83 @@ const formatWebsite = (website: string) => {
   width: 18px;
   height: 18px;
   cursor: pointer;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.75em;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-badge.prospect {
+  background-color: #e3f2fd;
+  color: #1565c0;
+}
+
+.status-badge.contacted {
+  background-color: #fff3e0;
+  color: #ef6c00;
+}
+
+.status-badge.negotiation {
+  background-color: #f3e5f5;
+  color: #7b1fa2;
+}
+
+.status-badge.client {
+  background-color: #e8f5e8;
+  color: #2e7d32;
+}
+
+.status-badge.inactive {
+  background-color: #ffebee;
+  color: #c62828;
+}
+
+.business-select {
+  padding: 6px 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  background: #fafbfc;
+  color: #222;
+  transition: border 0.2s;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.business-select:focus {
+  border-color: #007bff;
+  outline: none;
+  background: #fff;
+}
+
+.edit-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.validate-btn {
+  background-color: #e8f5e8;
+  color: #2e7d32;
+}
+
+.validate-btn:hover {
+  background-color: #c8e6c9;
+  color: #1b5e20;
+}
+
+.cancel-btn {
+  background-color: #ffebee;
+  color: #c62828;
+}
+
+.cancel-btn:hover {
+  background-color: #ffcdd2;
+  color: #b71c1c;
 }
 </style>
