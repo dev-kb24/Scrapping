@@ -1,33 +1,59 @@
 <template>
   <div class="dashboard">
     <div class="dashboard-header">
-      <h1>Dashboard</h1>
-
-      <router-link
-        to="/dashboard/scrape-builder"
-        class="new-scrape-btn"
-      >
-        <i class="fas fa-plus"></i>
-        New Scrape
-      </router-link>
+      <h1>Dashboard CRM</h1>
+      <div class="welcome-text">
+        Bienvenue ! Voici un aperçu de votre activité commerciale
+      </div>
+      <div></div>
     </div>
 
-    <!-- Stats Cards -->
+    <!-- Métriques Clés -->
     <div class="stats-grid">
       <div class="stats-card">
         <div class="stats-content">
           <div class="stats-header">
-            <h3>Total Scrapes</h3>
-            <div class="stats-icon scrapes-icon">
+            <h3>Total Entreprises</h3>
+            <div class="stats-icon companies-icon">
+              <i class="fas fa-building"></i>
+            </div>
+          </div>
+          <div class="stats-value">{{ dashboardStats.totalCompanies }}</div>
+          <div class="stats-trend up">
+            <i class="fas fa-arrow-up"></i>
+            <span>+{{ dashboardStats.newCompaniesThisWeek }} cette semaine</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="stats-card">
+        <div class="stats-content">
+          <div class="stats-header">
+            <h3>Prospects Actifs</h3>
+            <div class="stats-icon prospects-icon">
+              <i class="fas fa-user-clock"></i>
+            </div>
+          </div>
+          <div class="stats-value">{{ dashboardStats.activeProspects }}</div>
+          <div class="stats-trend up">
+            <i class="fas fa-arrow-up"></i>
+            <span>{{ dashboardStats.conversionRate }}% taux conversion</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="stats-card">
+        <div class="stats-content">
+          <div class="stats-header">
+            <h3>Sites Générés</h3>
+            <div class="stats-icon sites-icon">
               <i class="fas fa-globe"></i>
             </div>
           </div>
-
-          <div class="stats-value">{{ dashboardStats.totalScrapes.count }}</div>
-
+          <div class="stats-value">{{ dashboardStats.sitesCreated }}</div>
           <div class="stats-trend up">
             <i class="fas fa-arrow-up"></i>
-            <span>{{ dashboardStats.totalScrapes.change }}% from last week</span>
+            <span>+{{ dashboardStats.sitesThisMonth }} ce mois</span>
           </div>
         </div>
       </div>
@@ -35,374 +61,363 @@
       <div class="stats-card">
         <div class="stats-content">
           <div class="stats-header">
-            <h3>Preview Sites</h3>
-            <div class="stats-icon preview-icon">
-              <i class="fas fa-desktop"></i>
+            <h3>Emails Envoyés</h3>
+            <div class="stats-icon emails-icon">
+              <i class="fas fa-envelope"></i>
             </div>
           </div>
-
-          <div class="stats-value">{{ dashboardStats.previewSites.count }}</div>
-
+          <div class="stats-value">{{ dashboardStats.emailsSent }}</div>
           <div class="stats-trend up">
             <i class="fas fa-arrow-up"></i>
-            <span>{{ dashboardStats.previewSites.change }}% from last week</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="stats-card">
-        <div class="stats-content">
-          <div class="stats-header">
-            <h3>Active Clients</h3>
-            <div class="stats-icon clients-icon">
-              <i class="fas fa-users"></i>
-            </div>
-          </div>
-
-          <div class="stats-value">{{ dashboardStats.activeClients.count }}</div>
-
-          <div class="stats-trend up">
-            <i class="fas fa-arrow-up"></i>
-            <span>{{ dashboardStats.activeClients.change }}% from last week</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="stats-card">
-        <div class="stats-content">
-          <div class="stats-header">
-            <h3>Revenue</h3>
-            <div class="stats-icon revenue-icon">
-              <i class="fas fa-euro-sign"></i>
-            </div>
-          </div>
-
-          <div class="stats-value">€{{ dashboardStats.revenue.amount }}</div>
-
-          <div class="stats-trend up">
-            <i class="fas fa-arrow-up"></i>
-            <span>{{ dashboardStats.revenue.change }}% from last week</span>
+            <span>{{ dashboardStats.emailOpenRate }}% taux ouverture</span>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Activity Charts -->
-    <div class="activity-section">
+    <!-- Graphiques et Activité -->
+    <div class="charts-section">
+      <!-- Répartition par Statut -->
       <div class="chart-card">
         <div class="card-header">
-          <h2>Scraping Activity</h2>
-
-          <div class="time-filters">
-            <button
-              :class="['filter-btn', { active: activityTimeframe === 'day' }]"
-              @click="setActivityTimeframe('day')"
-            >
-              Day
-            </button>
-            <button
-              :class="['filter-btn', { active: activityTimeframe === 'week' }]"
-              @click="setActivityTimeframe('week')"
-            >
-              Week
-            </button>
-            <button
-              :class="['filter-btn', { active: activityTimeframe === 'month' }]"
-              @click="setActivityTimeframe('month')"
-            >
-              Month
-            </button>
-          </div>
+          <h2>Répartition par Statut</h2>
         </div>
-
-        <div class="chart-container">
-          <!-- This would be a chart component in a real app -->
-          <div class="placeholder-chart">
-            <div
-              class="chart-line"
-              style="height: 45%"
-            ></div>
-            <div
-              class="chart-line"
-              style="height: 60%"
-            ></div>
-            <div
-              class="chart-line"
-              style="height: 75%"
-            ></div>
-            <div
-              class="chart-line"
-              style="height: 55%"
-            ></div>
-            <div
-              class="chart-line"
-              style="height: 80%"
-            ></div>
-            <div
-              class="chart-line"
-              style="height: 30%"
-            ></div>
-            <div
-              class="chart-line"
-              style="height: 20%"
-            ></div>
-          </div>
-
-          <div class="chart-legend">
-            <div class="legend-item">
-              <div class="legend-color scrapes"></div>
-              <span>Scrapes</span>
+        <div class="status-chart">
+          <div
+            class="status-item"
+            v-for="status in statusDistribution"
+            :key="status.name"
+          >
+            <div class="status-bar">
+              <div
+                class="status-fill"
+                :class="status.class"
+                :style="{ width: status.percentage + '%' }"
+              ></div>
             </div>
-            <div class="legend-item">
-              <div class="legend-color previews"></div>
-              <span>Preview Sites</span>
+            <div class="status-info">
+              <span class="status-name">{{ status.name }}</span>
+              <span class="status-count">{{ status.count }}</span>
             </div>
           </div>
         </div>
       </div>
 
+      <!-- Activité Récente -->
       <div class="activity-card">
         <div class="card-header">
-          <h2>Recent Activity</h2>
+          <h2>Activité Récente</h2>
         </div>
-
         <div class="activity-list">
-          <div class="activity-item">
-            <div class="activity-icon scrape-icon">
-              <i class="fas fa-globe"></i>
+          <div
+            class="activity-item"
+            v-for="activity in recentActivities"
+            :key="activity.id"
+          >
+            <div
+              class="activity-icon"
+              :class="activity.iconClass"
+            >
+              <i :class="activity.icon"></i>
             </div>
             <div class="activity-content">
-              <h4>New scrape started</h4>
-              <p>Scrape initiated for GlobalTech</p>
-              <span class="activity-time">Just now</span>
-            </div>
-          </div>
-
-          <div class="activity-item">
-            <div class="activity-icon activity-preview-icon">
-              <i class="fas fa-desktop"></i>
-            </div>
-            <div class="activity-content">
-              <h4>Preview site published</h4>
-              <p>Preview for Innovate Inc. is now live</p>
-              <span class="activity-time">30 min ago</span>
-            </div>
-          </div>
-
-          <div class="activity-item">
-            <div class="activity-icon message-icon">
-              <i class="fas fa-comment-alt"></i>
-            </div>
-            <div class="activity-content">
-              <h4>Client feedback received</h4>
-              <p>Mark Johnson provided feedback on preview</p>
-              <span class="activity-time">1 hour ago</span>
-            </div>
-          </div>
-
-          <div class="activity-item">
-            <div class="activity-icon complete-icon">
-              <i class="fas fa-check-circle"></i>
-            </div>
-            <div class="activity-content">
-              <h4>Scrape completed</h4>
-              <p>Scrape for TechSolutions completed</p>
-              <span class="activity-time">2 hours ago</span>
-            </div>
-          </div>
-
-          <div class="activity-item">
-            <div class="activity-icon client-icon">
-              <i class="fas fa-user-plus"></i>
-            </div>
-            <div class="activity-content">
-              <h4>New client registered</h4>
-              <p>Sarah Williams from DigitalCorp signed up</p>
-              <span class="activity-time">5 hours ago</span>
+              <h4>{{ activity.title }}</h4>
+              <p>{{ activity.description }}</p>
+              <span class="activity-time">{{ activity.time }}</span>
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Recent Tables -->
-    <div class="tables-section">
-      <div class="table-card recent-scrapes">
-        <div class="card-header">
-          <h2>Recent Scrapes</h2>
-          <router-link
-            to="/dashboard/scrapes"
-            class="view-all"
-          >View All</router-link>
-        </div>
-
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Company</th>
-              <th>Status</th>
-              <th>Date</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <!-- Table rows would be populated dynamically in a real app -->
-            <tr>
-              <td>GlobalTech</td>
-              <td><span class="status in-progress">In Progress</span></td>
-              <td>Today</td>
-              <td class="actions">
-                <router-link
-                  to="/dashboard/scrapes/view/1"
-                  class="action-btn"
-                ><i class="fas fa-eye"></i></router-link>
-                <router-link
-                  to="/dashboard/scrapes/edit/1"
-                  class="action-btn"
-                ><i class="fas fa-edit"></i></router-link>
-                <button class="action-btn delete-btn"><i class="fas fa-trash"></i></button>
-              </td>
-            </tr>
-            <tr>
-              <td>TechSolutions</td>
-              <td><span class="status completed">Completed</span></td>
-              <td>Yesterday</td>
-              <td class="actions">
-                <router-link
-                  to="/dashboard/scrapes/view/2"
-                  class="action-btn"
-                ><i class="fas fa-eye"></i></router-link>
-                <router-link
-                  to="/dashboard/scrapes/edit/2"
-                  class="action-btn"
-                ><i class="fas fa-edit"></i></router-link>
-                <button class="action-btn delete-btn"><i class="fas fa-trash"></i></button>
-              </td>
-            </tr>
-            <tr>
-              <td>DigitalCorp</td>
-              <td><span class="status completed">Completed</span></td>
-              <td>May 15, 2023</td>
-              <td class="actions">
-                <router-link
-                  to="/dashboard/scrapes/view/3"
-                  class="action-btn"
-                ><i class="fas fa-eye"></i></router-link>
-                <router-link
-                  to="/dashboard/scrapes/edit/3"
-                  class="action-btn"
-                ><i class="fas fa-edit"></i></router-link>
-                <button class="action-btn delete-btn"><i class="fas fa-trash"></i></button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div class="table-card preview-sites">
-        <div class="card-header">
-          <h2>Preview Sites</h2>
-          <router-link
-            to="/dashboard/preview-sites"
-            class="view-all"
-          >View All</router-link>
-        </div>
-
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Client</th>
-              <th>Preview</th>
-            </tr>
-          </thead>
-          <tbody>
-            <!-- Table rows would be populated dynamically in a real app -->
-            <tr>
-              <td>Innovate Inc.</td>
-              <td>
-                <router-link
-                  to="/dashboard/preview-sites/view/1"
-                  class="preview-btn"
-                >
-                  <i class="fas fa-external-link-alt"></i>
-                  Open Preview
-                </router-link>
-              </td>
-            </tr>
-            <tr>
-              <td>TechSolutions</td>
-              <td>
-                <router-link
-                  to="/dashboard/preview-sites/view/2"
-                  class="preview-btn"
-                >
-                  <i class="fas fa-external-link-alt"></i>
-                  Open Preview
-                </router-link>
-              </td>
-            </tr>
-            <tr>
-              <td>GlobalTech</td>
-              <td>
-                <router-link
-                  to="/dashboard/preview-sites/view/3"
-                  class="preview-btn"
-                >
-                  <i class="fas fa-external-link-alt"></i>
-                  Open Preview
-                </router-link>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+    <!-- Actions Rapides -->
+    <div class="quick-actions">
+      <h2>Actions Rapides</h2>
+      <div class="actions-grid">
+        <router-link
+          to="/scrape"
+          class="action-card"
+        >
+          <i class="fas fa-search"></i>
+          <span>Nouveau Scrape</span>
+        </router-link>
+        <router-link
+          to="/entreprises"
+          class="action-card"
+        >
+          <i class="fas fa-plus"></i>
+          <span>Ajouter Entreprise</span>
+        </router-link>
+        <router-link
+          to="/email"
+          class="action-card"
+        >
+          <i class="fas fa-envelope-bulk"></i>
+          <span>Email de Masse</span>
+        </router-link>
+        <router-link
+          to="/site-creator"
+          class="action-card"
+        >
+          <i class="fas fa-code"></i>
+          <span>Créer un Site</span>
+        </router-link>
       </div>
     </div>
 
-    <div class="dashboard-footer">
-      <button
-        class="refresh-btn"
-        @click="fetchDashboardData"
-      >
-        <i class="fas fa-sync"></i>
-        Refresh Dashboard
-      </button>
+    <!-- Entreprises à Traiter -->
+    <div class="priority-section">
+      <div class="priority-card">
+        <div class="card-header">
+          <h2>Prospects Chauds</h2>
+          <span class="priority-badge hot">{{ hotProspects.length }}</span>
+        </div>
+        <div class="company-list">
+          <div
+            class="company-item"
+            v-for="company in hotProspects"
+            :key="company.id"
+          >
+            <div class="company-info">
+              <h4>{{ company.name }}</h4>
+              <p>{{ company.address }}</p>
+            </div>
+            <div class="company-actions">
+              <button class="action-btn contact-btn">
+                <i class="fas fa-phone"></i>
+              </button>
+              <button class="action-btn email-btn">
+                <i class="fas fa-envelope"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="priority-card">
+        <div class="card-header">
+          <h2>Relances à Faire</h2>
+          <span class="priority-badge warning">{{ followUps.length }}</span>
+        </div>
+        <div class="company-list">
+          <div
+            class="company-item"
+            v-for="company in followUps"
+            :key="company.id"
+          >
+            <div class="company-info">
+              <h4>{{ company.name }}</h4>
+              <p>Dernière interaction : {{ company.lastContact }}</p>
+            </div>
+            <div class="company-actions">
+              <button class="action-btn contact-btn">
+                <i class="fas fa-phone"></i>
+              </button>
+              <button class="action-btn email-btn">
+                <i class="fas fa-envelope"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scrapes Récents (vraies données) -->
+    <div class="recent-scrapes-section">
+      <div class="card-header">
+        <h2>Scrapes Récents</h2>
+        <router-link
+          to="/scrapes"
+          class="view-all"
+        >Voir Tout</router-link>
+      </div>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Nom</th>
+            <th>Mot-clé</th>
+            <th>Ville</th>
+            <th>Statut</th>
+            <th>Date</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            v-for="scrape in recentScrapes"
+            :key="scrape.id"
+          >
+            <td>{{ scrape.name }}</td>
+            <td>{{ scrape.keyword }}</td>
+            <td>{{ scrape.city }}</td>
+            <td>
+              <span
+                class="status"
+                :class="getStatusClass(scrape.progress)"
+              >
+                {{ getStatusText(scrape.progress) }}
+              </span>
+            </td>
+            <td>{{ formatDate(scrape.createdAt) }}</td>
+            <td class="actions">
+              <router-link
+                :to="`/scrapes/view/${scrape.id}`"
+                class="action-btn"
+              >
+                <i class="fas fa-eye"></i>
+              </router-link>
+              <button
+                class="action-btn delete-btn"
+                @click="deleteScrape(scrape.id)"
+              >
+                <i class="fas fa-trash"></i>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
+import { useScrapeStore } from "@/stores/scrape";
+import { useEtablissementStore } from "@/stores/etablissement";
+import { ApiService } from "@/services/APIService";
 
-// State
-const activityTimeframe = ref("week");
+const api = new ApiService("http://localhost:8000/api");
+const scrapeStore = useScrapeStore();
+const etablissementStore = useEtablissementStore();
+
+// État
 const isLoading = ref(true);
+const recentScrapes = ref([]);
+
+// Fausses données pour le visuel
 const dashboardStats = ref({
-  totalScrapes: { count: 1245, change: 12 },
-  previewSites: { count: 342, change: 8 },
-  activeClients: { count: 56, change: 5 },
-  revenue: { amount: 28450, change: 18 },
+  totalCompanies: 1247,
+  newCompaniesThisWeek: 23,
+  activeProspects: 342,
+  conversionRate: 18,
+  sitesCreated: 89,
+  sitesThisMonth: 12,
+  emailsSent: 2456,
+  emailOpenRate: 24,
 });
 
-// Methods
-const setActivityTimeframe = (timeframe: string) => {
-  activityTimeframe.value = timeframe;
-  // In a real app, you would fetch new data based on the timeframe
-};
+const statusDistribution = ref([
+  { name: "Prospects", count: 342, percentage: 45, class: "prospect" },
+  { name: "Contactés", count: 189, percentage: 25, class: "contacted" },
+  { name: "Négociation", count: 76, percentage: 10, class: "negotiation" },
+  { name: "Clients", count: 234, percentage: 15, class: "client" },
+  { name: "Inactifs", count: 38, percentage: 5, class: "inactive" },
+]);
 
+const recentActivities = ref([
+  {
+    id: 1,
+    title: "Nouveau scrape terminé",
+    description: 'Scrape "Restaurants Paris" - 45 entreprises trouvées',
+    time: "Il y a 2h",
+    icon: "fas fa-search",
+    iconClass: "scrape-icon",
+  },
+  {
+    id: 2,
+    title: "Email envoyé",
+    description: 'Campagne "Offre spéciale" envoyée à 156 prospects',
+    time: "Il y a 4h",
+    icon: "fas fa-envelope",
+    iconClass: "email-icon",
+  },
+  {
+    id: 3,
+    title: "Nouveau client",
+    description: 'TechSolutions est passé en statut "Client"',
+    time: "Il y a 6h",
+    icon: "fas fa-user-check",
+    iconClass: "client-icon",
+  },
+  {
+    id: 4,
+    title: "Site créé",
+    description: "Site web généré pour GlobalTech",
+    time: "Hier",
+    icon: "fas fa-globe",
+    iconClass: "site-icon",
+  },
+]);
+
+const hotProspects = ref([
+  { id: 1, name: "TechInnovate", address: "Paris 8ème" },
+  { id: 2, name: "DigitalCorp", address: "Lyon 3ème" },
+  { id: 3, name: "WebSolutions", address: "Marseille 2ème" },
+]);
+
+const followUps = ref([
+  { id: 1, name: "GlobalTech", lastContact: "Il y a 5 jours" },
+  { id: 2, name: "InnovateLab", lastContact: "Il y a 1 semaine" },
+  { id: 3, name: "StartupXYZ", lastContact: "Il y a 10 jours" },
+]);
+
+// Méthodes
 const fetchDashboardData = async () => {
   try {
     isLoading.value = true;
-    // In a real app, this would make an API call to your backend
-    // const response = await axios.get('/api/analytics/dashboard');
-    // dashboardStats.value = response.data.data;
 
-    // For now, we'll use the mockup data
-    setTimeout(() => {
-      isLoading.value = false;
-    }, 500);
-  } catch (error) {
-    console.error("Error fetching dashboard data:", error);
+    // Récupérer les vrais scrapes
+    const scrapesResponse = await api.get("/scrape");
+    recentScrapes.value = scrapesResponse.data.slice(0, 5);
+
+    // TODO: Récupérer les vraies entreprises quand l'API sera prête
+    // const companiesResponse = await api.get("/etablissements");
+
     isLoading.value = false;
+  } catch (error) {
+    console.error("Erreur lors du chargement des données:", error);
+    isLoading.value = false;
+  }
+};
+
+const getStatusClass = (progress: string) => {
+  switch (progress) {
+    case "in progress":
+      return "in-progress";
+    case "success":
+      return "completed";
+    case "failed":
+      return "failed";
+    default:
+      return "pending";
+  }
+};
+
+const getStatusText = (progress: string) => {
+  switch (progress) {
+    case "in progress":
+      return "En cours";
+    case "success":
+      return "Terminé";
+    case "failed":
+      return "Échoué";
+    default:
+      return "En attente";
+  }
+};
+
+const formatDate = (dateString: string) => {
+  return new Date(dateString).toLocaleDateString("fr-FR");
+};
+
+const deleteScrape = async (id: number) => {
+  if (confirm("Êtes-vous sûr de vouloir supprimer ce scrape ?")) {
+    try {
+      await axios.delete(`/api/scrapes/${id}`);
+      await fetchDashboardData();
+    } catch (error) {
+      console.error("Erreur lors de la suppression:", error);
+    }
   }
 };
 
@@ -423,40 +438,33 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 30px;
   flex-wrap: wrap;
-  margin-bottom: 20px;
-  position: relative;
 }
 
 .dashboard-header h1 {
-  font-size: 24px;
-  font-weight: 600;
   margin: 0;
+  color: #1f2937;
+  font-size: 28px;
 }
 
 .welcome-text {
   color: #6b7280;
-  position: absolute;
-  top: 30px;
-  left: 0;
-  margin: 0;
+  font-size: 16px;
+  margin: 8px 0;
 }
 
 .new-scrape-btn {
   background-color: #4f46e5;
   color: white;
-  border: none;
-  border-radius: 4px;
-  padding: 10px 16px;
-  font-weight: 500;
+  padding: 12px 20px;
+  border-radius: 8px;
+  text-decoration: none;
   display: flex;
   align-items: center;
-  cursor: pointer;
+  gap: 8px;
+  font-weight: 500;
   transition: background-color 0.2s;
-}
-
-.new-scrape-btn i {
-  margin-right: 8px;
 }
 
 .new-scrape-btn:hover {
@@ -466,23 +474,17 @@ onMounted(() => {
 /* Stats Grid */
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 20px;
-  margin-bottom: 24px;
-  margin-top: 40px;
-  width: 100%;
+  margin-bottom: 30px;
 }
 
 .stats-card {
-  background-color: white;
-  border-radius: 8px;
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  padding: 20px;
-}
-
-.stats-content {
-  display: flex;
-  flex-direction: column;
+  border: 1px solid #e5e7eb;
 }
 
 .stats-header {
@@ -509,22 +511,22 @@ onMounted(() => {
   font-size: 18px;
 }
 
-.scrapes-icon {
+.companies-icon {
   background-color: #e0e7ff;
   color: #4f46e5;
 }
 
-.preview-icon {
+.prospects-icon {
   background-color: #dcfce7;
   color: #10b981;
 }
 
-.clients-icon {
+.sites-icon {
   background-color: #dbeafe;
   color: #3b82f6;
 }
 
-.revenue-icon {
+.emails-icon {
   background-color: #fef3c7;
   color: #f59e0b;
 }
@@ -533,140 +535,115 @@ onMounted(() => {
   font-size: 28px;
   font-weight: 600;
   margin-bottom: 8px;
+  color: #1f2937;
 }
 
 .stats-trend {
   display: flex;
   align-items: center;
+  gap: 4px;
   font-size: 14px;
-}
-
-.stats-trend.up {
   color: #10b981;
 }
 
-.stats-trend.down {
-  color: #ef4444;
-}
-
-.stats-trend i {
-  margin-right: 4px;
-}
-
-/* Activity Section */
-.activity-section {
+/* Charts Section */
+.charts-section {
   display: grid;
-  grid-template-columns: 2fr 1fr;
+  grid-template-columns: 1fr 1fr;
   gap: 20px;
-  margin-bottom: 24px;
-  width: 100%;
+  margin-bottom: 30px;
 }
 
 .chart-card,
 .activity-card {
-  background-color: white;
-  border-radius: 8px;
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  padding: 20px;
+  border: 1px solid #e5e7eb;
 }
 
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
 .card-header h2 {
-  font-size: 18px;
-  font-weight: 600;
   margin: 0;
+  font-size: 20px;
+  color: #1f2937;
 }
 
-.time-filters {
+/* Status Chart */
+.status-chart {
   display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.status-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.status-bar {
+  flex: 1;
+  height: 8px;
   background-color: #f3f4f6;
   border-radius: 4px;
   overflow: hidden;
 }
 
-.filter-btn {
-  background: none;
-  border: none;
-  padding: 8px 16px;
-  cursor: pointer;
+.status-fill {
+  height: 100%;
+  border-radius: 4px;
+}
+
+.status-fill.prospect {
+  background-color: #3b82f6;
+}
+.status-fill.contacted {
+  background-color: #10b981;
+}
+.status-fill.negotiation {
+  background-color: #f59e0b;
+}
+.status-fill.client {
+  background-color: #8b5cf6;
+}
+.status-fill.inactive {
+  background-color: #6b7280;
+}
+
+.status-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 80px;
+}
+
+.status-name {
   font-size: 14px;
   color: #6b7280;
 }
 
-.filter-btn.active {
-  background-color: #4f46e5;
-  color: white;
-}
-
-.chart-container {
-  height: 300px;
-  position: relative;
-}
-
-/* Placeholder chart (would be replaced with a real chart component) */
-.placeholder-chart {
-  height: 80%;
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  padding-bottom: 20px;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.chart-line {
-  width: 40px;
-  background-color: #818cf8;
-  border-radius: 4px 4px 0 0;
-}
-
-.chart-legend {
-  display: flex;
-  justify-content: center;
-  margin-top: 20px;
-}
-
-.legend-item {
-  display: flex;
-  align-items: center;
-  margin: 0 10px;
-}
-
-.legend-color {
-  width: 16px;
-  height: 16px;
-  border-radius: 4px;
-  margin-right: 8px;
-}
-
-.legend-color.scrapes {
-  background-color: #818cf8;
-}
-
-.legend-color.previews {
-  background-color: #34d399;
+.status-count {
+  font-weight: 600;
+  color: #1f2937;
 }
 
 /* Activity List */
 .activity-list {
-  max-height: 300px;
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .activity-item {
   display: flex;
-  align-items: center;
-  padding: 12px 0;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.activity-item:last-child {
-  border-bottom: none;
+  gap: 12px;
 }
 
 .activity-icon {
@@ -676,7 +653,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-right: 12px;
+  font-size: 16px;
   flex-shrink: 0;
 }
 
@@ -684,41 +661,29 @@ onMounted(() => {
   background-color: #e0e7ff;
   color: #4f46e5;
 }
-
-.activity-preview-icon {
-  background-color: #dcfce7;
-  color: #10b981;
-}
-
-.message-icon {
+.email-icon {
   background-color: #fef3c7;
   color: #f59e0b;
 }
-
-.complete-icon {
-  background-color: #d1fae5;
-  color: #059669;
-}
-
 .client-icon {
+  background-color: #dcfce7;
+  color: #10b981;
+}
+.site-icon {
   background-color: #dbeafe;
   color: #3b82f6;
 }
 
-.activity-content {
-  flex-grow: 1;
-}
-
 .activity-content h4 {
+  margin: 0 0 4px 0;
   font-size: 14px;
-  font-weight: 600;
-  margin: 0 0 4px;
+  color: #1f2937;
 }
 
 .activity-content p {
+  margin: 0 0 4px 0;
   font-size: 13px;
   color: #6b7280;
-  margin: 0;
 }
 
 .activity-time {
@@ -726,49 +691,147 @@ onMounted(() => {
   color: #9ca3af;
 }
 
-/* Tables Section */
-.tables-section {
+/* Quick Actions */
+.quick-actions {
+  margin-bottom: 30px;
+}
+
+.quick-actions h2 {
+  margin-bottom: 16px;
+  color: #1f2937;
+}
+
+.actions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.action-card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.action-card:hover {
+  border-color: #4f46e5;
+  color: #4f46e5;
+  transform: translateY(-2px);
+}
+
+.action-card i {
+  font-size: 24px;
+}
+
+/* Priority Section */
+.priority-section {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 20px;
-  margin-bottom: 24px;
-  width: 100%;
+  margin-bottom: 30px;
 }
 
-.table-card {
-  background-color: white;
-  border-radius: 8px;
+.priority-card {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  padding: 20px;
+  border: 1px solid #e5e7eb;
 }
 
-.view-all {
-  color: #4f46e5;
-  text-decoration: none;
-  font-size: 14px;
-  font-weight: 500;
+.priority-badge {
+  background-color: #ef4444;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.priority-badge.hot {
+  background-color: #ef4444;
+}
+
+.priority-badge.warning {
+  background-color: #f59e0b;
+}
+
+.company-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.company-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  background-color: #f9fafb;
+  border-radius: 8px;
+}
+
+.company-info h4 {
+  margin: 0 0 4px 0;
+  color: #1f2937;
+}
+
+.company-info p {
+  margin: 0;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.company-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.contact-btn {
+  background-color: #10b981;
+  color: white;
+}
+
+.email-btn {
+  background-color: #3b82f6;
+  color: white;
+}
+
+/* Recent Scrapes */
+.recent-scrapes-section {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
 }
 
 .data-table {
   width: 100%;
   border-collapse: collapse;
+  margin-top: 16px;
 }
 
 .data-table th {
   text-align: left;
-  padding: 10px 16px;
+  padding: 12px;
   border-bottom: 1px solid #e5e7eb;
   font-weight: 500;
   color: #6b7280;
 }
 
 .data-table td {
-  padding: 12px 16px;
+  padding: 12px;
   border-bottom: 1px solid #e5e7eb;
-}
-
-.data-table tr:last-child td {
-  border-bottom: none;
 }
 
 .status {
@@ -789,11 +852,6 @@ onMounted(() => {
   color: #059669;
 }
 
-.status.pending {
-  background-color: #fef3c7;
-  color: #f59e0b;
-}
-
 .status.failed {
   background-color: #fee2e2;
   color: #ef4444;
@@ -806,61 +864,41 @@ onMounted(() => {
 
 .action-btn {
   background: none;
-  border: none;
-  color: #6b7280;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  padding: 6px 8px;
   cursor: pointer;
-  font-size: 14px;
+  color: #6b7280;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .action-btn:hover {
-  color: #4b5563;
-}
-
-.preview-btn {
   background-color: #f3f4f6;
-  border: none;
-  border-radius: 4px;
-  padding: 6px 12px;
-  font-size: 13px;
-  display: flex;
-  align-items: center;
-  cursor: pointer;
 }
 
-.preview-btn i {
-  margin-right: 6px;
+.delete-btn:hover {
+  background-color: #fee2e2;
+  border-color: #ef4444;
+  color: #ef4444;
 }
 
-.dashboard-footer {
-  display: flex;
-  justify-content: flex-end;
-  width: 100%;
+.view-all {
+  color: #4f46e5;
+  text-decoration: none;
+  font-size: 14px;
 }
 
-.refresh-btn {
-  background-color: #4f46e5;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  padding: 10px 16px;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-}
-
-.refresh-btn i {
-  margin-right: 8px;
+.view-all:hover {
+  text-decoration: underline;
 }
 
 /* Responsive */
 @media (max-width: 1200px) {
-  .stats-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .activity-section,
-  .tables-section {
+  .charts-section,
+  .priority-section {
     grid-template-columns: 1fr;
   }
 }
@@ -871,17 +909,12 @@ onMounted(() => {
     align-items: flex-start;
   }
 
-  .welcome-text {
-    position: static;
-    margin: 8px 0 16px;
-  }
-
-  .new-scrape-btn {
-    margin-top: 16px;
-  }
-
   .stats-grid {
     grid-template-columns: 1fr;
+  }
+
+  .actions-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 </style>
