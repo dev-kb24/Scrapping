@@ -47,6 +47,15 @@
       <i class="fas fa-code"></i>
       <span>Site creator</span>
     </router-link>
+    <router-link
+      to="/template"
+      class="nav-item"
+      active-class="active"
+      exact
+    >
+      <i class="fas fa-file-alt"></i>
+      <span>Templates</span>
+    </router-link>
     <!--  <router-link
             to="/dashboard/prospects"
             class="nav-item"

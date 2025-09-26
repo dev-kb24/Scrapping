@@ -55,7 +55,15 @@ const router = createRouter({
            meta: {
             title: 'Site Creator'
           }
-        }
+        },
+        {
+          path: 'template',
+          name: 'template',
+          component: () => import("@/views/Template.vue"),
+          meta: {
+            title: 'Template'
+          }
+        },
       ]
     }
   ],
