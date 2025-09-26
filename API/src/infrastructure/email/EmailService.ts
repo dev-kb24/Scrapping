@@ -1,7 +1,7 @@
 import nodemailer, { Transporter } from 'nodemailer';
 import { EmailInterface } from '../../domain/interfaces/EmailInterface';
 
-export class EmailRepository implements EmailInterface{
+export class EmailService implements EmailInterface{
     transporter: Transporter | undefined;
 
     constructor(emailConfig: any){

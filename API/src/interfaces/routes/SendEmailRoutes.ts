@@ -3,10 +3,10 @@ import { EmailInterface } from '../../domain/interfaces/EmailInterface';
 import { EtablissementRepository } from '../../domain/repositories/EtablissementRepository';
 import { UpdateEtablissementUseCase } from '../../applications/etablissements/usecases/UpdateEtablissementUseCase';
 import { SendEmailUseCase } from '../../applications/email/usecases/SendEmailUseCase';
-import { EmailController } from '../controllers/EmailController';
+import { SendEmailController } from '../controllers/SendEmailController';
 import { SendEmailMiddleware } from '../../infrastructure/middleware/sendEmailMiddleware';
 
-export class EmailRouter {
+export class SendEmailRouter {
     private router;
     private controller;
     private middleware;
@@ -14,7 +14,7 @@ export class EmailRouter {
      constructor(repoEmail: EmailInterface, repoEtablissement: EtablissementRepository) {
         const updateEtablissementUC = new UpdateEtablissementUseCase(repoEtablissement);
         const sendEmailUC = new SendEmailUseCase(repoEmail);
-        this.controller = new EmailController(updateEtablissementUC, sendEmailUC);
+        this.controller = new SendEmailController(updateEtablissementUC, sendEmailUC);
         this.middleware = new SendEmailMiddleware();
         this.router = Router();
      }
