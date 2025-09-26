@@ -3,6 +3,14 @@
     <div class="page-header">
       <h1>Entreprises</h1>
       <div class="header-actions">
+        <div class="view-toggle">
+          <button
+            :class="['view-btn', { active: viewMode === 'kanban' }]"
+            @click="$router.push('/entreprises/kanban')"
+          >
+            <i class="fas fa-columns"></i> Kanban
+          </button>
+        </div>
         <button
           v-if="selectionMode && selectedEtablissements.length > 0"
           class="delete-selected-btn"
@@ -270,8 +278,21 @@ onMounted(async () => {
 });
 
 function goToEmailPage(email: string) {
-  console.log("ici");
-  router.push({ name: "email", query: { to: email } });
+  // Trouver l'établissement complet par email
+  const etablissement = etablissementStore.etablissements.find(
+    (e) => e.email === email
+  );
+
+  router.push({
+    name: "email",
+    query: {
+      to: email,
+      etablissementId: etablissement?.id,
+      etablissementName: etablissement?.name,
+      etablissementAddress: etablissement?.address,
+      etablissementPhone: etablissement?.phone,
+    },
+  });
 }
 
 function goToPage(page: number) {

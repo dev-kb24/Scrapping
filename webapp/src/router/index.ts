@@ -25,6 +25,14 @@ const router = createRouter({
           }
         },
         {
+          path: 'entreprises/kanban',
+          name: 'EntreprisesKanban',
+          component: () => import("@/views/BusinessKanban.vue"),
+          meta: {
+            title: 'Entreprises - Vue Kanban'
+          }
+        },
+        {
           path: 'scrape',
           name: 'scrape',
           component: () => import("@/views/Scrape.vue"),
